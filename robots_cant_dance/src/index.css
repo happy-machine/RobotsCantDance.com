@@ -2,4 +2,12 @@ body {
   margin: 0;
   padding: 0;
   font-family: sans-serif;
-  background-color: #009900; }
+  background-image: url("assets/RCD_bg.png");
+  background-repeat: no-repeat;
+  background-size: cover; }
+
+.App {
+  background-image: url("assets/RCD_bg.png");
+  background-repeat: no-repeat;
+  height: 1000px;
+  width: auto; }
