@@ -1,0 +1,785 @@
+{
+	"id": "34d618b3-63f2-4fa4-8424-6ab01ee630e7",
+	"name": "Spotify",
+	"description": "",
+	"auth": null,
+	"events": null,
+	"variables": [],
+	"order": [],
+	"folders_order": [
+		"36740b34-93de-4c7b-b148-42b563923d93",
+		"a315c733-b25e-4950-9216-6b760908adff"
+	],
+	"folders": [
+		{
+			"id": "36740b34-93de-4c7b-b148-42b563923d93",
+			"name": "Album",
+			"description": "",
+			"auth": null,
+			"events": null,
+			"collection": "34d618b3-63f2-4fa4-8424-6ab01ee630e7",
+			"folder": null,
+			"order": [
+				"cd28078e-08c4-4fcd-90dd-556f21790e81",
+				"40b6b486-e45c-4299-acb6-bdfa144f666f",
+				"b8529199-b065-4926-926e-6e21cbf3cfe1",
+				"180e15aa-975c-4e7f-9226-f574b00b9b99"
+			],
+			"folders_order": []
+		},
+		{
+			"id": "a315c733-b25e-4950-9216-6b760908adff",
+			"name": "Player",
+			"description": "",
+			"auth": null,
+			"events": null,
+			"collection": "34d618b3-63f2-4fa4-8424-6ab01ee630e7",
+			"folder": null,
+			"order": [
+				"66497ada-a3bf-4f51-b6b5-27216f870ab6",
+				"67d04610-219b-42e4-a002-a0d947233f8b",
+				"8df92d8f-edb5-4a92-8389-a3aeaa9f18a9",
+				"82c41675-b4d9-4b69-849f-f28d2ae0d267",
+				"ceb5d7d7-d41e-4ae8-9482-63bdb5d36169",
+				"35340095-4e62-445b-8275-178fc8c10d2d",
+				"b2716292-7bfc-4b1b-8638-dac5e885146d",
+				"5ab5bea3-bb1f-4395-9713-264373a3a085",
+				"23d21859-e3eb-4a68-9d11-b96fdeeebacf",
+				"619f155d-d186-4617-a1b7-53012493f3b3",
+				"5a217dd2-18e3-4e43-9e34-fdf8569956c0",
+				"7607f63f-3a6e-42b1-94e1-c434c2b056d7",
+				"479a2107-fbbb-4185-b7c7-b2c501faf390",
+				"796e33be-67ea-4c13-bf88-12ba9fbdf1ec",
+				"753f2266-f769-4a4e-aa70-3ef7ace04d6f",
+				"bd5b82f3-96ad-467c-818b-be7993748390"
+			],
+			"folders_order": []
+		}
+	],
+	"requests": [
+		{
+			"id": "180e15aa-975c-4e7f-9226-f574b00b9b99",
+			"name": "ARTIST: Albums",
+			"url": "https://api.spotify.com/v1/albums/{{albumId}}/tracks",
+			"description": "Select the previous track",
+			"data": [],
+			"dataMode": "raw",
+			"headerData": [
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"description": ""
+				}
+			],
+			"method": "GET",
+			"pathVariableData": [],
+			"queryParams": [],
+			"auth": {
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{bearerToken}}",
+						"type": "string"
+					}
+				],
+				"type": "bearer"
+			},
+			"events": [],
+			"folder": "36740b34-93de-4c7b-b148-42b563923d93",
+			"rawModeData": "{\r\n  \"device_ids\": [\r\n    \"74ASZWbe4lXaubB36ztrGX\"\r\n  ]\r\n}",
+			"headers": "Content-Type: application/json\n",
+			"pathVariables": {}
+		},
+		{
+			"id": "23d21859-e3eb-4a68-9d11-b96fdeeebacf",
+			"name": "PLAYER:  Shuffle On",
+			"url": "https://api.spotify.com/v1/me/player/shuffle?state=true",
+			"description": "Select the previous track",
+			"data": [],
+			"dataMode": "raw",
+			"headerData": [
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"description": ""
+				}
+			],
+			"method": "PUT",
+			"pathVariableData": [],
+			"queryParams": [
+				{
+					"key": "state",
+					"value": "true",
+					"equals": true,
+					"description": "",
+					"enabled": true
+				}
+			],
+			"auth": {
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{bearerToken}}",
+						"type": "string"
+					}
+				],
+				"type": "bearer"
+			},
+			"events": [],
+			"folder": "a315c733-b25e-4950-9216-6b760908adff",
+			"rawModeData": "{\r\n  \"device_ids\": [\r\n    \"74ASZWbe4lXaubB36ztrGX\"\r\n  ]\r\n}",
+			"headers": "Content-Type: application/json\n",
+			"pathVariables": {}
+		},
+		{
+			"id": "35340095-4e62-445b-8275-178fc8c10d2d",
+			"name": "PLAYER:  Select Album, Play Track, Seek Position",
+			"url": "\thttps://api.spotify.com/v1/me/player/play",
+			"description": "Start/Resume a User's Playback\n\nhttps://developer.spotify.com/console/put-play/",
+			"data": [],
+			"dataMode": "raw",
+			"headerData": [
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"description": ""
+				}
+			],
+			"method": "PUT",
+			"pathVariableData": [],
+			"queryParams": [],
+			"auth": {
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{bearerToken}}",
+						"type": "string"
+					}
+				],
+				"type": "bearer"
+			},
+			"events": [],
+			"folder": "a315c733-b25e-4950-9216-6b760908adff",
+			"rawModeData": "{\r\n  \"context_uri\": \"spotify:album:2XlFUmzm8HEujlACVJToEq\",\r\n  \"offset\": {\r\n    \"position\": 1\r\n  },\r\n  \"position_ms\": 0\r\n}",
+			"headers": "Content-Type: application/json\n",
+			"pathVariables": {}
+		},
+		{
+			"id": "40b6b486-e45c-4299-acb6-bdfa144f666f",
+			"name": "ALBUM: Get Album Details",
+			"url": "\thttps://api.spotify.com/v1/albums/{{albumId}}",
+			"description": "Select the previous track",
+			"data": [],
+			"dataMode": "raw",
+			"headerData": [
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"description": ""
+				}
+			],
+			"method": "GET",
+			"pathVariableData": [],
+			"queryParams": [],
+			"auth": {
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{bearerToken}}",
+						"type": "string"
+					}
+				],
+				"type": "bearer"
+			},
+			"events": [],
+			"folder": "36740b34-93de-4c7b-b148-42b563923d93",
+			"rawModeData": "{\r\n  \"device_ids\": [\r\n    \"74ASZWbe4lXaubB36ztrGX\"\r\n  ]\r\n}",
+			"headers": "Content-Type: application/json\n",
+			"pathVariables": {}
+		},
+		{
+			"id": "479a2107-fbbb-4185-b7c7-b2c501faf390",
+			"name": "PLAYER:  Repeat Off",
+			"url": "https://api.spotify.com/v1/me/player/repeat?state=off",
+			"description": "Select the previous track",
+			"data": [],
+			"dataMode": "raw",
+			"headerData": [
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"description": ""
+				}
+			],
+			"method": "PUT",
+			"pathVariableData": [],
+			"queryParams": [
+				{
+					"key": "state",
+					"value": "off",
+					"equals": true,
+					"description": "",
+					"enabled": true
+				}
+			],
+			"auth": {
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{bearerToken}}",
+						"type": "string"
+					}
+				],
+				"type": "bearer"
+			},
+			"events": [],
+			"folder": "a315c733-b25e-4950-9216-6b760908adff",
+			"rawModeData": "{\r\n  \"device_ids\": [\r\n    \"74ASZWbe4lXaubB36ztrGX\"\r\n  ]\r\n}",
+			"headers": "Content-Type: application/json\n",
+			"pathVariables": {}
+		},
+		{
+			"id": "5a217dd2-18e3-4e43-9e34-fdf8569956c0",
+			"name": "PLAYER:  Seek",
+			"url": "https://api.spotify.com/v1/me/player/seek?position_ms=2500",
+			"description": "Select the previous track",
+			"data": [],
+			"dataMode": "raw",
+			"headerData": [
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"description": ""
+				}
+			],
+			"method": "PUT",
+			"pathVariableData": [],
+			"queryParams": [
+				{
+					"key": "position_ms",
+					"value": "2500",
+					"equals": true,
+					"description": "",
+					"enabled": true
+				}
+			],
+			"auth": {
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{bearerToken}}",
+						"type": "string"
+					}
+				],
+				"type": "bearer"
+			},
+			"events": [],
+			"folder": "a315c733-b25e-4950-9216-6b760908adff",
+			"rawModeData": "{\r\n  \"device_ids\": [\r\n    \"74ASZWbe4lXaubB36ztrGX\"\r\n  ]\r\n}",
+			"headers": "Content-Type: application/json\n",
+			"pathVariables": {}
+		},
+		{
+			"id": "5ab5bea3-bb1f-4395-9713-264373a3a085",
+			"name": "PLAYER: Devices",
+			"url": "\thttps://api.spotify.com/v1/me/player/devices",
+			"description": "Select the previous track",
+			"data": [],
+			"dataMode": "raw",
+			"headerData": [
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"description": ""
+				}
+			],
+			"method": "GET",
+			"pathVariableData": [],
+			"queryParams": [],
+			"auth": {
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{bearerToken}}",
+						"type": "string"
+					}
+				],
+				"type": "bearer"
+			},
+			"events": [],
+			"folder": "a315c733-b25e-4950-9216-6b760908adff",
+			"rawModeData": "{\r\n  \"device_ids\": [\r\n    \"74ASZWbe4lXaubB36ztrGX\"\r\n  ]\r\n}",
+			"headers": "Content-Type: application/json\n",
+			"pathVariables": {}
+		},
+		{
+			"id": "619f155d-d186-4617-a1b7-53012493f3b3",
+			"name": "PLAYER:  Shuffle Off",
+			"url": "https://api.spotify.com/v1/me/player/shuffle?state=false",
+			"description": "Select the previous track",
+			"data": [],
+			"dataMode": "raw",
+			"headerData": [
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"description": ""
+				}
+			],
+			"method": "PUT",
+			"pathVariableData": [],
+			"queryParams": [
+				{
+					"key": "state",
+					"value": "false",
+					"equals": true,
+					"description": "",
+					"enabled": true
+				}
+			],
+			"auth": {
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{bearerToken}}",
+						"type": "string"
+					}
+				],
+				"type": "bearer"
+			},
+			"events": [],
+			"folder": "a315c733-b25e-4950-9216-6b760908adff",
+			"rawModeData": "{\r\n  \"device_ids\": [\r\n    \"74ASZWbe4lXaubB36ztrGX\"\r\n  ]\r\n}",
+			"headers": "Content-Type: application/json\n",
+			"pathVariables": {}
+		},
+		{
+			"id": "66497ada-a3bf-4f51-b6b5-27216f870ab6",
+			"name": "PLAYER:  Currently Playing",
+			"url": "https://api.spotify.com/v1/me/player/currently-playing",
+			"description": "Select the previous track",
+			"data": [],
+			"dataMode": "raw",
+			"headerData": [
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"description": ""
+				}
+			],
+			"method": "GET",
+			"pathVariableData": [],
+			"queryParams": [],
+			"auth": {
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{bearerToken}}",
+						"type": "string"
+					}
+				],
+				"type": "bearer"
+			},
+			"events": [],
+			"folder": "a315c733-b25e-4950-9216-6b760908adff",
+			"rawModeData": "{\r\n  \"device_ids\": [\r\n    \"74ASZWbe4lXaubB36ztrGX\"\r\n  ]\r\n}",
+			"headers": "Content-Type: application/json\n",
+			"pathVariables": {}
+		},
+		{
+			"id": "67d04610-219b-42e4-a002-a0d947233f8b",
+			"name": "PLAYER:  Start/Resume",
+			"url": "\thttps://api.spotify.com/v1/me/player/play",
+			"description": "Start/Resume a User's Playback\n\nhttps://developer.spotify.com/console/put-play/",
+			"data": [],
+			"dataMode": "raw",
+			"headerData": [
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"description": ""
+				}
+			],
+			"method": "PUT",
+			"pathVariableData": [],
+			"queryParams": [],
+			"auth": {
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{bearerToken}}",
+						"type": "string"
+					}
+				],
+				"type": "bearer"
+			},
+			"events": [],
+			"folder": "a315c733-b25e-4950-9216-6b760908adff",
+			"rawModeData": "{\r\n  \"device_ids\": [\r\n    \"74ASZWbe4lXaubB36ztrGX\"\r\n  ]\r\n}",
+			"headers": "Content-Type: application/json\n",
+			"pathVariables": {}
+		},
+		{
+			"id": "753f2266-f769-4a4e-aa70-3ef7ace04d6f",
+			"name": "PLAYER:  Repeat Off Context",
+			"url": "https://api.spotify.com/v1/me/player/repeat?state=context ",
+			"description": "Select the previous track",
+			"data": [],
+			"dataMode": "raw",
+			"headerData": [
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"description": ""
+				}
+			],
+			"method": "PUT",
+			"pathVariableData": [],
+			"queryParams": [
+				{
+					"key": "state",
+					"value": "context ",
+					"equals": true,
+					"description": "",
+					"enabled": true
+				}
+			],
+			"auth": {
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{bearerToken}}",
+						"type": "string"
+					}
+				],
+				"type": "bearer"
+			},
+			"events": [],
+			"folder": "a315c733-b25e-4950-9216-6b760908adff",
+			"rawModeData": "{\r\n  \"device_ids\": [\r\n    \"74ASZWbe4lXaubB36ztrGX\"\r\n  ]\r\n}",
+			"headers": "Content-Type: application/json\n",
+			"pathVariables": {}
+		},
+		{
+			"id": "7607f63f-3a6e-42b1-94e1-c434c2b056d7",
+			"name": "PLAYER:  Repeat Track",
+			"url": "https://api.spotify.com/v1/me/player/repeat?state=track",
+			"description": "Select the previous track",
+			"data": [],
+			"dataMode": "raw",
+			"headerData": [
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"description": ""
+				}
+			],
+			"method": "PUT",
+			"pathVariableData": [],
+			"queryParams": [
+				{
+					"key": "state",
+					"value": "track",
+					"equals": true,
+					"description": "",
+					"enabled": true
+				}
+			],
+			"auth": {
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{bearerToken}}",
+						"type": "string"
+					}
+				],
+				"type": "bearer"
+			},
+			"events": [],
+			"folder": "a315c733-b25e-4950-9216-6b760908adff",
+			"rawModeData": "{\r\n  \"device_ids\": [\r\n    \"74ASZWbe4lXaubB36ztrGX\"\r\n  ]\r\n}",
+			"headers": "Content-Type: application/json\n",
+			"pathVariables": {}
+		},
+		{
+			"id": "796e33be-67ea-4c13-bf88-12ba9fbdf1ec",
+			"name": "PLAYER:  Pause Track",
+			"url": "\thttps://api.spotify.com/v1/me/player/pause",
+			"description": "Start/Resume a User's Playback\n\nhttps://developer.spotify.com/console/put-play/",
+			"data": [],
+			"dataMode": "raw",
+			"headerData": [
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"description": ""
+				}
+			],
+			"method": "PUT",
+			"pathVariableData": [],
+			"queryParams": [],
+			"auth": {
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{bearerToken}}",
+						"type": "string"
+					}
+				],
+				"type": "bearer"
+			},
+			"events": [],
+			"folder": "a315c733-b25e-4950-9216-6b760908adff",
+			"rawModeData": "{\r\n  \"device_ids\": [\r\n    \"74ASZWbe4lXaubB36ztrGX\"\r\n  ]\r\n}",
+			"headers": "Content-Type: application/json\n",
+			"pathVariables": {}
+		},
+		{
+			"id": "82c41675-b4d9-4b69-849f-f28d2ae0d267",
+			"name": "PLAYER: Previous Track",
+			"url": "https://api.spotify.com/v1/me/player/previous",
+			"description": "Select the previous track",
+			"data": [],
+			"dataMode": "raw",
+			"headerData": [
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"description": ""
+				}
+			],
+			"method": "POST",
+			"pathVariableData": [],
+			"queryParams": [],
+			"auth": {
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{bearerToken}}",
+						"type": "string"
+					}
+				],
+				"type": "bearer"
+			},
+			"events": [],
+			"folder": "a315c733-b25e-4950-9216-6b760908adff",
+			"rawModeData": "{\n\t\"volume_percent\": 100\n}",
+			"headers": "Content-Type: application/json\n",
+			"pathVariables": {}
+		},
+		{
+			"id": "8df92d8f-edb5-4a92-8389-a3aeaa9f18a9",
+			"name": "PLAYER: Volume Control",
+			"url": "https://api.spotify.com/v1/me/player/volume?volume_percent=50",
+			"description": "Set Volume For User's Playback\n\nvolume_percent \n\nhttps://developer.spotify.com/documentation/web-api/reference/player/set-volume-for-users-playback/",
+			"data": [],
+			"dataMode": "raw",
+			"headerData": [
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"description": ""
+				}
+			],
+			"method": "PUT",
+			"pathVariableData": [],
+			"queryParams": [
+				{
+					"key": "volume_percent",
+					"value": "50",
+					"equals": true,
+					"description": "",
+					"enabled": true
+				}
+			],
+			"auth": {
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{bearerToken}}",
+						"type": "string"
+					}
+				],
+				"type": "bearer"
+			},
+			"events": [],
+			"folder": "a315c733-b25e-4950-9216-6b760908adff",
+			"rawModeData": "{\n\t\"volume_percent\": 100\n}",
+			"headers": "Content-Type: application/json\n",
+			"pathVariables": {}
+		},
+		{
+			"id": "b2716292-7bfc-4b1b-8638-dac5e885146d",
+			"name": "PLAYER:  Device",
+			"url": "https://api.spotify.com/v1/me/player",
+			"description": "Select the previous track",
+			"data": [],
+			"dataMode": "raw",
+			"headerData": [
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"description": ""
+				}
+			],
+			"method": "GET",
+			"pathVariableData": [],
+			"queryParams": [],
+			"auth": {
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{bearerToken}}",
+						"type": "string"
+					}
+				],
+				"type": "bearer"
+			},
+			"events": [],
+			"folder": "a315c733-b25e-4950-9216-6b760908adff",
+			"rawModeData": "{\r\n  \"device_ids\": [\r\n    \"74ASZWbe4lXaubB36ztrGX\"\r\n  ]\r\n}",
+			"headers": "Content-Type: application/json\n",
+			"pathVariables": {}
+		},
+		{
+			"id": "b8529199-b065-4926-926e-6e21cbf3cfe1",
+			"name": "ALBUM: Track Listing",
+			"url": "https://api.spotify.com/v1/albums/{{albumId}}/tracks",
+			"description": "Select the previous track",
+			"data": [],
+			"dataMode": "raw",
+			"headerData": [
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"description": ""
+				}
+			],
+			"method": "GET",
+			"pathVariableData": [],
+			"queryParams": [],
+			"auth": {
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{bearerToken}}",
+						"type": "string"
+					}
+				],
+				"type": "bearer"
+			},
+			"events": [],
+			"folder": "36740b34-93de-4c7b-b148-42b563923d93",
+			"rawModeData": "{\r\n  \"device_ids\": [\r\n    \"74ASZWbe4lXaubB36ztrGX\"\r\n  ]\r\n}",
+			"headers": "Content-Type: application/json\n",
+			"pathVariables": {}
+		},
+		{
+			"id": "bd5b82f3-96ad-467c-818b-be7993748390",
+			"name": "PLAYER:  Select Artist, Play Track, Seek Position",
+			"url": "\thttps://api.spotify.com/v1/me/player/play",
+			"description": "Start/Resume a User's Playback\n\nhttps://developer.spotify.com/console/put-play/",
+			"data": [],
+			"dataMode": "raw",
+			"headerData": [
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"description": ""
+				}
+			],
+			"method": "PUT",
+			"pathVariableData": [],
+			"queryParams": [],
+			"auth": {
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{bearerToken}}",
+						"type": "string"
+					}
+				],
+				"type": "bearer"
+			},
+			"events": [],
+			"folder": "a315c733-b25e-4950-9216-6b760908adff",
+			"rawModeData": "{\r\n  \"context_uri\": \"spotify:artist:6r20qOqY7qDWI0PPTxVMlC\",\r\n  \"position_ms\": 0\r\n}",
+			"headers": "Content-Type: application/json\n",
+			"pathVariables": {}
+		},
+		{
+			"id": "cd28078e-08c4-4fcd-90dd-556f21790e81",
+			"name": "ALBUM: Get Multiply Album Details",
+			"url": "https://api.spotify.com/v1/albums?ids=3wStRuUMPfKHTzokF7Xn0K%2C6r20qOqY7qDWI0PPTxVMlC",
+			"description": "Select the previous track",
+			"data": [],
+			"dataMode": "raw",
+			"headerData": [
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"description": ""
+				}
+			],
+			"method": "GET",
+			"pathVariableData": [],
+			"queryParams": [
+				{
+					"key": "ids",
+					"value": "3wStRuUMPfKHTzokF7Xn0K%2C6r20qOqY7qDWI0PPTxVMlC",
+					"equals": true,
+					"description": "",
+					"enabled": true
+				}
+			],
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{bearerToken}}",
+						"type": "string"
+					}
+				]
+			},
+			"events": [],
+			"folder": "36740b34-93de-4c7b-b148-42b563923d93",
+			"rawModeData": "{\r\n  \"device_ids\": [\r\n    \"74ASZWbe4lXaubB36ztrGX\"\r\n  ]\r\n}",
+			"headers": "Content-Type: application/json\n",
+			"pathVariables": {}
+		},
+		{
+			"id": "ceb5d7d7-d41e-4ae8-9482-63bdb5d36169",
+			"name": "PLAYER: Next Track",
+			"url": "https://api.spotify.com/v1/me/player/next",
+			"description": "Skip User's Playback To Next Track\n\nhttps://developer.spotify.com/console/post-next/",
+			"data": [],
+			"dataMode": "raw",
+			"headerData": [
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"description": ""
+				}
+			],
+			"method": "POST",
+			"pathVariableData": [],
+			"queryParams": [],
+			"auth": {
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{bearerToken}}",
+						"type": "string"
+					}
+				],
+				"type": "bearer"
+			},
+			"events": [],
+			"folder": "a315c733-b25e-4950-9216-6b760908adff",
+			"rawModeData": "{\n\t\"volume_percent\": 100\n}",
+			"headers": "Content-Type: application/json\n",
+			"pathVariables": {}
+		}
+	]
+}
