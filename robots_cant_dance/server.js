@@ -12,9 +12,9 @@ var client_id = 'dd991e3ab8114a45bafbd430281adc65';
 var client_secret = 'e3d433cb69314a93a86e917aa36f1f12'; 
 var redirect_uri = `http://localhost:${port}/callback/`; 
 var globalRefreshToken;
-var globalToken;
+var globalToken = false;
 var globalResults = [];
-let users = [];
+let userTokens = [];
 var tokenExpiry = new Date().getTime();
 var RateLimit = require('express-rate-limit');
 var limiter = new RateLimit({
@@ -58,7 +58,8 @@ app.get('/invite', function(req, res) {
  
   var state = generateRandomString(16);
   res.cookie(stateKey, state);
-  res.redirect('https://accounts.spotify.com/authorize?' +
+  if (globalToken) {
+    res.redirect('https://accounts.spotify.com/authorize?' +
     querystring.stringify({
       response_type: 'code',
       client_id: client_id,
@@ -66,6 +67,7 @@ app.get('/invite', function(req, res) {
       redirect_uri: redirect_uri,
       state: state
     }));
+  } else { res.redirect('/error') }
 });
 
 app.get('/callback', function(req, res) {
@@ -93,14 +95,13 @@ app.get('/callback', function(req, res) {
     };
     rp.post(authOptions, function(error, response, body) {
       if (!error && response.statusCode === 200) {
-        globalRefreshToken = body.refresh_token;
-        globalToken = body.access_token
+        globalToken ? userTokens.push(body.access_token) : globalToken =  body.access_token
         tokenExpiry = new Date() + (Math.floor(body.expires_in / 60) * 10000)
         res.set('Content-Type', 'application/json')
         res.redirect(`http://localhost:3000/loggedin#${querystring.stringify({
           token: globalToken
         })}`)
-        console.log('success', globalToken)
+        console.log('success token=', globalToken,' userTokens: ', userTokens)
       } else {
         res.redirect(`http://localhost:3000/error#${querystring.stringify({
           token: globalToken
