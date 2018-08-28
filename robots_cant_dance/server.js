@@ -3,7 +3,6 @@ var express = require('express');
 var app = express();
 const port = process.env.PORT || 5000;
 var _ = require ('lodash')
-var nodemailer = require('nodemailer');
 var express = require('express'); 
 var cors = require('cors')
 var querystring = require('querystring');
@@ -12,7 +11,6 @@ const rp = require('request-promise')
 var client_id = 'dd991e3ab8114a45bafbd430281adc65'; 
 var client_secret = 'e3d433cb69314a93a86e917aa36f1f12'; 
 var redirect_uri = `http://localhost:${port}/callback/`; 
-var SpotifyWebApi = require('spotify-web-api-node')
 var globalRefreshToken;
 var globalToken;
 var globalResults = [];
@@ -20,11 +18,9 @@ var tokenExpiry = new Date().getTime();
 var RateLimit = require('express-rate-limit');
 var limiter = new RateLimit({
   windowMs: 10*60*60*1000, // 10 hour window
-  delayAfter: 1, // begin slowing down responses after the first request
-  delayMs: 350, // slow down subsequent responses by one request every 350ms (Spotify is 250)
+  max: 250
 });
 const PERMISSIONS_SCOPE = 'user-read-private user-read-email playlist-modify-public playlist-modify-private playlist-read-private user-read-private';
-const server = http.createServer(app);
 var stateKey = 'spotify_auth_state';
 var app = express();
 app.use(express.static(__dirname + '/public'))
@@ -42,7 +38,9 @@ const wait = (time, res = null) => {
   }
   
 
+
 app.get('/login', function(req, res) {
+ 
   var state = generateRandomString(16);
   res.cookie(stateKey, state);
   res.redirect('https://accounts.spotify.com/authorize?' +
@@ -83,7 +81,10 @@ app.get('/callback', function(req, res) {
         globalRefreshToken = body.refresh_token;
         globalToken = body.access_token
         tokenExpiry = new Date() + (Math.floor(body.expires_in / 60) * 10000)
-        res.redirect('/searchform.html')
+        res.redirect(`/loggedin#${querystring.stringify({
+          token: globalToken
+        })}`)
+        console.log('success', globalToken)
       } else {
         res.redirect('/#' +
     querystring.stringify({
@@ -136,10 +137,6 @@ var generateRandomString = function(length) {
 
 
 
-app.use('/',
-    express.static('./public')
-);
-
-server.listen(port, () => {
-  console.log(`Started TF Model server on localhost://${port}`);
+app.listen(port, () => {
+  console.log(`Started RCD Server on localhost:${port}`);
 });
