@@ -12,9 +12,11 @@ var client_secret = 'e3d433cb69314a93a86e917aa36f1f12';
 var host_redirect_uri = `http://localhost:5000/callback/`; 
 var guest_redirect_uri = `http://localhost:5000/guestcallback/`; 
 var globalRefreshToken;
-var globalToken = false;
-var globalResults = [];
-let userTokens = [];
+var host = {
+  token: null,
+  name: null
+}
+let users = [];
 var tokenExpiry = new Date().getTime();
 var RateLimit = require('express-rate-limit');
 var limiter = new RateLimit({
@@ -29,6 +31,46 @@ app.use(express.static(__dirname + '/public'))
   .use(cors())
   .use(limiter);
 
+
+let master = {
+  track_uri: null,
+  track_name: null,
+  artist_name: null,
+  play_position: null,
+  selector_name: null,
+  selector_token: null
+}
+
+var getUserOptions = (token) => {
+  return { 
+    url: 'https://api.spotify.com/v1/me',
+    headers: { 'Authorization': 'Bearer ' + token },
+    json: true 
+  }
+};
+
+var getPlaybackOptions = (token) => {
+ return {
+  url: 'https://api.spotify.com/v1/me/player/currently-playing',
+  headers: { 'Authorization': 'Bearer ' + token },
+  json: true 
+ }
+};
+
+var setPlaybackOptions = (token, master) => {
+  return {
+   url: 'https://api.spotify.com/v1/me/player/play',
+   headers: { 'Authorization': 'Bearer ' + token },
+   json: true ,
+   body: {
+      "context_uri": master.track_uri,
+      "offset": {
+        "position": 1
+      },
+      "position_ms": master.play_position
+    }
+   }
+ };
 
 const wait = (time, res = null) => {
     return new Promise((resolve, fail) => {
@@ -57,7 +99,7 @@ app.get('/invite', function(req, res) {
  console.log('in invite')
   var state = generateRandomString(16);
   res.cookie(stateKey, state);
-  if (globalToken) {
+  if (host.token) {
     res.redirect('https://accounts.spotify.com/authorize?' +
     querystring.stringify({
       response_type: 'code',
@@ -66,7 +108,7 @@ app.get('/invite', function(req, res) {
       redirect_uri: guest_redirect_uri,
       state: state
     }));
-  } else { res.redirect('/error') }
+  } else { res.redirect('/error?error=NoHostConnected') }
 });
 
 app.get('/callback', function(req, res) {
@@ -95,16 +137,19 @@ app.get('/callback', function(req, res) {
     };
     rp.post(authOptions, function(error, response, body) {
       if (!error && response.statusCode === 200) {
-        globalToken =  body.access_token
-        tokenExpiry = new Date() + (Math.floor(body.expires_in / 60) * 10000)
-        res.set('Content-Type', 'application/json')
-        res.redirect(`http://localhost:3000/#${querystring.stringify({
-          token: globalToken
-        })}`)
-        console.log('success token=', globalToken,' userTokens: ', userTokens)
+        host.token = body.access_token
+        getUserOptions.token = host.token
+        rp.post(getUserOptions).then((res) => {
+          host.name = res.display_name
+          res.set('Content-Type', 'application/json')
+          res.redirect(`http://localhost:3000/#${querystring.stringify({
+            token: host.token
+          })}`)
+        })
+        console.log(`Host Name: ${host.name}, Host Token: ${host.token}, Users: ${users}`)
       } else {
         res.redirect(`http://localhost:3000/#${querystring.stringify({
-          token: globalToken
+          token: host.token
         })}`)
       }
     });
@@ -137,12 +182,17 @@ app.get('/guestcallback', function(req, res) {
     };
     rp.post(authOptions, function(error, response, body) {
       if (!error && response.statusCode === 200) {
-        userTokens.push(body.access_token) 
-        tokenExpiry = new Date() + (Math.floor(body.expires_in / 60) * 10000)
+        let newUser = {}
+        newUser.token = body.access_token
+        getUserOptions.token = newUser.token
+        rp.post(getUserOptions).then((res) => {
+          newUser.name = res.display_name
+          users.push(newUser)
         res.set('Content-Type', 'application/json')
         res.redirect(`http://localhost:3000/#${querystring.stringify({
-          token: body.access_token
+          token: host.token
         })}`)
+        })
         console.log('success token=', globalToken,' userTokens: ', userTokens)
       } else {
         res.redirect(`http://localhost:3000/#${querystring.stringify({
@@ -193,7 +243,39 @@ var generateRandomString = function(length) {
   return text;
 };
 
+const syncToMaster = (host, users) => {
+  let allUsers =[]
+  allUsers.push(host.token)
+  allUsers.concat(users.map(user => user.token))
+  allUsers.forEach(
+    (user) => {
+      if (checkCurrentTrack(user).track_uri !== master.track_uri) {
+        master = checkCurrentTrack(user)
+        allUsers.splice(allUsers.indexOf(user),1)
+        resync(allUsers, master)
+      } 
+    })
+}
 
+const resync = (allUsers, master) => {
+  allUsers.forEach(user =>  rp.put(setPlaybackOptions(user,master).then(res => console.log(res))))
+}
+
+const checkCurrentTrack = (user) => {
+  return rp.get(getPlaybackOptions(user)).then((res) => {
+    return { 
+      track_uri: res.context.uri,
+      track_name: res.item.name,
+      artist_name: res.item.artist[0].name,
+      play_position: res.progress_ms,
+      selector_name: null,
+      selector_token: null}
+  })
+}
+
+setTimeout(() => {
+  syncToMaster(host, users)
+}, 350);
 
 app.listen(port, () => {
   console.log(`Started RCD Server on localhost:${port}`);
