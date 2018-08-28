@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { BrowserRouter, Route } from 'react-router-dom'
 import './App.css';
-import axios from 'axios';
 const PORT = 5000;
 
 class App extends Component {
@@ -25,13 +24,13 @@ class App extends Component {
 }
 
 const InvitePage = () => {
-  return <a style={{textDecoration:'none', color: 'white'}} href="http://localhost:5000/invite">Login to Spotify</a>
+  return <a style={{textDecoration:'none', color: 'white'}} href="http://192.168.1.121:3000/invite">Login to Spotify</a>
 }
 const LoggedIn = () => {
   return <div style={{textDecoration:'none', color: 'white'}}>Logged In!</div>
 }
 const HomePage = () => {
-  return <a style={{textDecoration:'none', color: 'white'}} href="http://localhost:5000/login">Login to Spotify</a>
+  return <a style={{textDecoration:'none', color: 'white'}} href={`http://localhost:${PORT}/login`}>Login to Spotify</a>
 }
 const Error = (message) => {
   return <div style={{color: 'red'}}>Error logging into Spotify</div>

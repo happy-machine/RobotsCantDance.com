@@ -1,4 +1,3 @@
-var http = require('http');
 var express = require('express');
 var app = express();
 const port = process.env.PORT || 5000;
@@ -10,7 +9,7 @@ var cookieParser = require('cookie-parser');
 const rp = require('request-promise')
 var client_id = 'dd991e3ab8114a45bafbd430281adc65'; 
 var client_secret = 'e3d433cb69314a93a86e917aa36f1f12'; 
-var redirect_uri = `http://localhost:${port}/callback/`; 
+var redirect_uri = `http://localhost:5000/callback/`; 
 var globalRefreshToken;
 var globalToken = false;
 var globalResults = [];
@@ -55,7 +54,7 @@ app.get('/login', function(req, res) {
 });
 
 app.get('/invite', function(req, res) {
- 
+ console.log('in invite')
   var state = generateRandomString(16);
   res.cookie(stateKey, state);
   if (globalToken) {
@@ -98,12 +97,12 @@ app.get('/callback', function(req, res) {
         globalToken ? userTokens.push(body.access_token) : globalToken =  body.access_token
         tokenExpiry = new Date() + (Math.floor(body.expires_in / 60) * 10000)
         res.set('Content-Type', 'application/json')
-        res.redirect(`http://localhost:3000/loggedin#${querystring.stringify({
+        res.redirect(`http://192.168.1.121:3000/#${querystring.stringify({
           token: globalToken
         })}`)
         console.log('success token=', globalToken,' userTokens: ', userTokens)
       } else {
-        res.redirect(`http://localhost:3000/error#${querystring.stringify({
+        res.redirect(`http://192.168.1.121:3000/#${querystring.stringify({
           token: globalToken
         })}`)
       }
