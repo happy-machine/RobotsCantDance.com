@@ -24,7 +24,7 @@ class App extends Component {
 }
 
 const InvitePage = () => {
-  return <a style={{textDecoration:'none', color: 'white'}} href="http://192.168.1.121:3000/invite">Login to Spotify</a>
+  return <a style={{textDecoration:'none', color: 'white'}} href={`http://localhost:${PORT}/invite`}>Login to Spotify</a>
 }
 const LoggedIn = () => {
   return <div style={{textDecoration:'none', color: 'white'}}>Logged In!</div>
