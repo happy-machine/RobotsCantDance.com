@@ -41,26 +41,26 @@ let master = {
   selector_token: null
 }
 
-var getUserOptions = (token) => {
+var getUserOptions = (user) => {
   return { 
     url: 'https://api.spotify.com/v1/me',
-    headers: { 'Authorization': 'Bearer ' + token },
+    headers: { 'Authorization': 'Bearer ' + user.token },
     json: true 
   }
 };
 
-var getPlaybackOptions = (token) => {
+var getPlaybackOptions = (user) => {
  return {
   url: 'https://api.spotify.com/v1/me/player/currently-playing',
-  headers: { 'Authorization': 'Bearer ' + token },
+  headers: { 'Authorization': 'Bearer ' + user.token },
   json: true 
  }
 };
 
-var setPlaybackOptions = (token, master) => {
+var setPlaybackOptions = (user, master) => {
   return {
    url: 'https://api.spotify.com/v1/me/player/play',
-   headers: { 'Authorization': 'Bearer ' + token },
+   headers: { 'Authorization': 'Bearer ' + user.token },
    json: true ,
    body: {
       "context_uri": master.track_uri,
@@ -135,6 +135,7 @@ app.get('/callback', function(req, res) {
       },
       json: true
     };
+
     rp.post(authOptions, function(error, response, body) {
       if (!error && response.statusCode === 200) {
         host.token = body.access_token
@@ -251,7 +252,7 @@ const syncToMaster = (host, users) => {
     (user) => {
       if (checkCurrentTrack(user).track_uri !== master.track_uri) {
         master = checkCurrentTrack(user)
-        allUsers.splice(allUsers.indexOf(user),1)
+        allUsers.splice(allUsers.indexOf(user.token),1)
         resync(allUsers, master)
       } 
     })
@@ -268,8 +269,8 @@ const checkCurrentTrack = (user) => {
       track_name: res.item.name,
       artist_name: res.item.artist[0].name,
       play_position: res.progress_ms,
-      selector_name: null,
-      selector_token: null}
+      selector_name: user.name,
+      selector_token: user.token}
   })
 }
 
