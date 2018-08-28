@@ -14,6 +14,7 @@ var redirect_uri = `http://localhost:${port}/callback/`;
 var globalRefreshToken;
 var globalToken;
 var globalResults = [];
+let users = [];
 var tokenExpiry = new Date().getTime();
 var RateLimit = require('express-rate-limit');
 var limiter = new RateLimit({
@@ -40,6 +41,20 @@ const wait = (time, res = null) => {
 
 
 app.get('/login', function(req, res) {
+ 
+  var state = generateRandomString(16);
+  res.cookie(stateKey, state);
+  res.redirect('https://accounts.spotify.com/authorize?' +
+    querystring.stringify({
+      response_type: 'code',
+      client_id: client_id,
+      scope: PERMISSIONS_SCOPE,
+      redirect_uri: redirect_uri,
+      state: state
+    }));
+});
+
+app.get('/invite', function(req, res) {
  
   var state = generateRandomString(16);
   res.cookie(stateKey, state);
@@ -81,7 +96,8 @@ app.get('/callback', function(req, res) {
         globalRefreshToken = body.refresh_token;
         globalToken = body.access_token
         tokenExpiry = new Date() + (Math.floor(body.expires_in / 60) * 10000)
-        res.redirect(`/loggedin#${querystring.stringify({
+        res.set('Content-Type', 'application/json')
+        res.redirect(`http://localhost:3000/loggedin#${querystring.stringify({
           token: globalToken
         })}`)
         console.log('success', globalToken)
