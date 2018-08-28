@@ -16,6 +16,7 @@ class App extends Component {
       <Route path="/" exact component={HomePage} />
       <Route path="/invite" component={InvitePage} />
       <Route path="/loggedin" component={LoggedIn} />
+      <Route path="/error" component={Error('Error logging in to Spotify')} />
     </div>
     </BrowserRouter>
       </div>
@@ -24,12 +25,15 @@ class App extends Component {
 }
 
 const InvitePage = () => {
-  return <div>Invite</div>
+  return <a style={{textDecoration:'none', color: 'white'}} href="http://localhost:5000/invite">Login to Spotify</a>
 }
 const LoggedIn = () => {
-  return <div>Logged In!</div>
+  return <div style={{textDecoration:'none', color: 'white'}}>Logged In!</div>
 }
 const HomePage = () => {
-  return <a href="http://localhost:5000/login">Login</a>
+  return <a style={{textDecoration:'none', color: 'white'}} href="http://localhost:5000/login">Login to Spotify</a>
+}
+const Error = (message) => {
+  return <div style={{color: 'red'}}>Error logging into Spotify</div>
 }
 export default App;

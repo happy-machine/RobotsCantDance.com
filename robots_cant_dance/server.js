@@ -102,10 +102,9 @@ app.get('/callback', function(req, res) {
         })}`)
         console.log('success', globalToken)
       } else {
-        res.redirect('/#' +
-    querystring.stringify({
-      error: 'invalid_token'
-    }))
+        res.redirect(`http://localhost:3000/error#${querystring.stringify({
+          token: globalToken
+        })}`)
       }
     });
   }
