@@ -15,6 +15,7 @@ class App extends Component {
       <Route path="/" exact component={HomePage} />
       <Route path="/invite" component={InvitePage} />
       <Route path="/loggedin" component={LoggedIn} />
+      <Route path="/start" component={Start} />
       <Route path="/error" component={Error('Error logging in to Spotify')} />
     </div>
     </BrowserRouter>
@@ -31,6 +32,10 @@ const LoggedIn = () => {
 }
 const HomePage = () => {
   return <a style={{textDecoration:'none', color: 'white'}} href={`http://localhost:${PORT}/login`}>Login to Spotify and host the party</a>
+}
+
+const Start = () => {
+  return <a style={{textDecoration:'none', color: 'white'}} href={`http://localhost:${PORT}/start`}>Start sync</a>
 }
 const Error = (message) => {
   return <div style={{color: 'red'}}>Error logging into Spotify {message}</div>

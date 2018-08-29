@@ -233,9 +233,12 @@ const checkCurrentTrack = (user) => {
   }).catch(e => console.log(e))
 }
 
-// users.length && host.token && setTimeout(() => {
-//   syncToMaster(host, users)
-// }, 350);
+app.get('/start', function(req, res) {
+  console.log('in loop'.flashing)
+  setTimeout(() => {
+    syncToMaster(host, users)
+  }, 350);
+});
 
 app.listen(port, () => {
   console.log(`Started RCD Server on localhost:${port}`.green);
