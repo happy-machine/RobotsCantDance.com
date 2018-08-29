@@ -7,15 +7,11 @@ class App extends Component {
   render() {
     return (
       <div className="App" >
-        <header className="App-header">
-          <h1 className="App-title">Test</h1>
-        </header>
         <BrowserRouter>
         <div className="container">
       <Route path="/" exact component={HomePage} />
       <Route path="/invite" component={InvitePage} />
       <Route path="/loggedin" component={LoggedIn} />
-      <Route path="/start" component={Start} />
       <Route path="/error" component={Error('Error logging in to Spotify')} />
     </div>
     </BrowserRouter>
@@ -31,12 +27,15 @@ const LoggedIn = () => {
   return <div style={{textDecoration:'none', color: 'white'}}>Logged In!</div>
 }
 const HomePage = () => {
-  return <a style={{textDecoration:'none', color: 'white'}} href={`http://localhost:${PORT}/login`}>Login to Spotify and host the party</a>
+  return (
+    <div id="links">
+    <a style={{lineHeight: '10px', marginBottom: '10px', textDecoration:'none', color: 'white'}} href={`http://localhost:${PORT}/login`}>Login to Spotify and host </a><br />
+    <a style={{lineHeight: '10px', marginBottom: '10px', textDecoration:'none', color: 'white'}} href={`http://localhost:${PORT}/invite`}>Login and join </a><br />
+    <a style={{lineHeight: '10px', marginBottom: '10px', textDecoration:'none', color: 'white'}} href={`http://localhost:${PORT}/start`}>Start sync </a><br />
+    </div>
+  );
 }
 
-const Start = () => {
-  return <a style={{textDecoration:'none', color: 'white'}} href={`http://localhost:${PORT}/start`}>Start sync</a>
-}
 const Error = (message) => {
   return <div style={{color: 'red'}}>Error logging into Spotify {message}</div>
 }

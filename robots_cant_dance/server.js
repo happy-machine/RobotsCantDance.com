@@ -217,7 +217,7 @@ console.log('TCL: syncToMaster -> host, users', host, users);
 
 const resync = (allUsers, master) => {
   console.log('TCL: resync -> allUsers, master', allUsers, master.green);
-  allUsers.forEach(user =>  rp(setPlaybackOptions(user,master).then(res => console.log(res)).catch(e => console.log(e))))
+  allUsers.forEach(user =>  rp(setPlaybackOptions(user,master)).then(res => console.log(res)).catch(e => console.log(e)))
 }
 
 const checkCurrentTrack = (user) => {

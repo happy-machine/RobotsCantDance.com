@@ -9,5 +9,18 @@ body {
 .App {
   background-image: url("assets/RCD_bg.png");
   background-repeat: no-repeat;
-  height: 1000px;
+  height: 700px;
   width: auto; }
+
+a {
+  margin-bottom: 10px; }
+  a:hover {
+    color: greenyellow !important; }
+
+#links {
+  margin-top: 40px;
+  line-height: 1.7 !important;
+  text-align: center;
+  display: block; }
+  #links:hover {
+    color: greenyellow !important; }
