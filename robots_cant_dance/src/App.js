@@ -24,15 +24,15 @@ class App extends Component {
 }
 
 const InvitePage = () => {
-  return <a style={{textDecoration:'none', color: 'white'}} href={`http://localhost:${PORT}/invite`}>Login to Spotify</a>
+  return <a style={{textDecoration:'none', color: 'white'}} href={`http://localhost:${PORT}/invite`}>Login to Spotify and join the party</a>
 }
 const LoggedIn = () => {
   return <div style={{textDecoration:'none', color: 'white'}}>Logged In!</div>
 }
 const HomePage = () => {
-  return <a style={{textDecoration:'none', color: 'white'}} href={`http://localhost:${PORT}/login`}>Login to Spotify</a>
+  return <a style={{textDecoration:'none', color: 'white'}} href={`http://localhost:${PORT}/login`}>Login to Spotify and host the party</a>
 }
 const Error = (message) => {
-  return <div style={{color: 'red'}}>Error logging into Spotify</div>
+  return <div style={{color: 'red'}}>Error logging into Spotify {message}</div>
 }
 export default App;

@@ -4,6 +4,7 @@ const port = process.env.PORT || 5000;
 var _ = require ('lodash')
 var express = require('express'); 
 var cors = require('cors')
+var colors = require('colors');
 var querystring = require('querystring');
 var cookieParser = require('cookie-parser');
 const rp = require('request-promise')
@@ -11,13 +12,12 @@ var client_id = 'dd991e3ab8114a45bafbd430281adc65';
 var client_secret = 'e3d433cb69314a93a86e917aa36f1f12'; 
 var host_redirect_uri = `http://localhost:5000/callback/`; 
 var guest_redirect_uri = `http://localhost:5000/guestcallback/`; 
-var globalRefreshToken;
 var host = {
   token: null,
   name: null
 }
 let users = [];
-var tokenExpiry = new Date().getTime();
+// var tokenExpiry = new Date().getTime();
 var RateLimit = require('express-rate-limit');
 var limiter = new RateLimit({
   windowMs: 10*60*60*1000, // 10 hour window
@@ -41,26 +41,29 @@ let master = {
   selector_token: null
 }
 
-var getUserOptions = (token) => {
+var getUserOptions = (user) => {
   return { 
-    url: 'https://api.spotify.com/v1/me',
-    headers: { 'Authorization': 'Bearer ' + token },
+    method: 'GET',
+    uri: 'https://api.spotify.com/v1/me',
+    headers: { 'Authorization': 'Bearer ' + user.token },
     json: true 
   }
 };
 
-var getPlaybackOptions = (token) => {
+var getPlaybackOptions = (user) => {
  return {
-  url: 'https://api.spotify.com/v1/me/player/currently-playing',
-  headers: { 'Authorization': 'Bearer ' + token },
+  method: 'GET',
+  uri: 'https://api.spotify.com/v1/me/player/currently-playing',
+  headers: { 'Authorization': 'Bearer ' + user.token },
   json: true 
  }
 };
 
-var setPlaybackOptions = (token, master) => {
+var setPlaybackOptions = (user, master) => {
   return {
-   url: 'https://api.spotify.com/v1/me/player/play',
-   headers: { 'Authorization': 'Bearer ' + token },
+    method: 'PUT',
+   uri: 'https://api.spotify.com/v1/me/player/play',
+   headers: { 'Authorization': 'Bearer ' + user.token },
    json: true ,
    body: {
       "context_uri": master.track_uri,
@@ -71,6 +74,21 @@ var setPlaybackOptions = (token, master) => {
     }
    }
  };
+
+let authOptions = (redirect_uri, code) => {
+    return {
+    url: 'https://accounts.spotify.com/api/token',
+    form: {
+      code: code,
+      redirect_uri: redirect_uri,
+      grant_type: 'authorization_code'
+    },
+    headers: {
+      'Authorization': 'Basic ' + (new Buffer(client_id + ':' + client_secret).toString('base64'))
+    },
+    json: true
+  }
+}
 
 const wait = (time, res = null) => {
     return new Promise((resolve, fail) => {
@@ -83,6 +101,7 @@ const wait = (time, res = null) => {
 
 
 app.get('/login', function(req, res) {
+  console.log('IN LOGIN'.green)
   var state = generateRandomString(16);
   res.cookie(stateKey, state);
   res.redirect('https://accounts.spotify.com/authorize?' +
@@ -96,7 +115,7 @@ app.get('/login', function(req, res) {
 });
 
 app.get('/invite', function(req, res) {
- console.log('in invite')
+ console.log('IN INVITE'.green)
   var state = generateRandomString(16);
   res.cookie(stateKey, state);
   if (host.token) {
@@ -108,11 +127,13 @@ app.get('/invite', function(req, res) {
       redirect_uri: guest_redirect_uri,
       state: state
     }));
-  } else { res.redirect('/error?error=NoHostConnected') }
+  } else { 
+    console.log('error in invite'.red)
+    res.redirect('/error?error=NoHostConnected') }
 });
 
 app.get('/callback', function(req, res) {
-  console.log('in host callback')
+  console.log('IN HOST CALLBACK'.green);
   var code = req.query.code || null;
   var state = req.query.state || null;
   var storedState = req.cookies ? req.cookies[stateKey] : null;
@@ -123,41 +144,26 @@ app.get('/callback', function(req, res) {
       }));
   } else {
     res.clearCookie(stateKey);
-    var authOptions = {
-      url: 'https://accounts.spotify.com/api/token',
-      form: {
-        code: code,
-        redirect_uri: host_redirect_uri,
-        grant_type: 'authorization_code'
-      },
-      headers: {
-        'Authorization': 'Basic ' + (new Buffer(client_id + ':' + client_secret).toString('base64'))
-      },
-      json: true
-    };
-    rp.post(authOptions, function(error, response, body) {
+  
+
+    rp.post(authOptions(host_redirect_uri, code), function(error, response, body) {
+      console.log('IN HOST PORT'.green)
       if (!error && response.statusCode === 200) {
         host.token = body.access_token
-        getUserOptions.token = host.token
-        rp.post(getUserOptions).then((res) => {
+        rp(getUserOptions(host)).then((res) => {
           host.name = res.display_name
-          res.set('Content-Type', 'application/json')
-          res.redirect(`http://localhost:3000/#${querystring.stringify({
-            token: host.token
-          })}`)
-        })
+          // res.set('Content-Type', 'application/json')
+        }).catch(e => console.log('in host callback', e))
         console.log(`Host Name: ${host.name}, Host Token: ${host.token}, Users: ${users}`)
       } else {
-        res.redirect(`http://localhost:3000/#${querystring.stringify({
-          token: host.token
-        })}`)
+        console.log('error in host post to spotify'.red)
       }
-    });
+    }).catch(e => console.log('error in callback rp.post'));
   }
 });
 
 app.get('/guestcallback', function(req, res) {
-  console.log('in guest callback')
+  console.log('IN GUEST CALLBACK'.green)
   var code = req.query.code || null;
   var state = req.query.state || null;
   var storedState = req.cookies ? req.cookies[stateKey] : null;
@@ -168,71 +174,23 @@ app.get('/guestcallback', function(req, res) {
       }));
   } else {
     res.clearCookie(stateKey);
-    var authOptions = {
-      url: 'https://accounts.spotify.com/api/token',
-      form: {
-        code: code,
-        redirect_uri: guest_redirect_uri,
-        grant_type: 'authorization_code'
-      },
-      headers: {
-        'Authorization': 'Basic ' + (new Buffer(client_id + ':' + client_secret).toString('base64'))
-      },
-      json: true
-    };
-    rp.post(authOptions, function(error, response, body) {
+
+    rp.post(authOptions(guest_redirect_uri, code), function(error, response, body) {
       if (!error && response.statusCode === 200) {
         let newUser = {}
         newUser.token = body.access_token
-        getUserOptions.token = newUser.token
-        rp.post(getUserOptions).then((res) => {
+        rp(getUserOptions(newUser)).then((res) => {
           newUser.name = res.display_name
           users.push(newUser)
-        res.set('Content-Type', 'application/json')
-        res.redirect(`http://localhost:3000/#${querystring.stringify({
-          token: host.token
-        })}`)
-        })
-        console.log('success token=', globalToken,' userTokens: ', userTokens)
+        }).catch(e => console.log('in guest callback', e))
+        console.log('success token=', host.token,' users: ', users, newUser)
       } else {
-        res.redirect(`http://localhost:3000/#${querystring.stringify({
-          token: body.access_token
-        })}`)
+        console.log('error in guest post to spotify'.red)
       }
-    });
+    }).catch(e => console.log('error in guest callback rp.post'.red));
   }
 });
 
-rpSafe = (options) => {
-  return new Promise((resolve, fail) => {
-    var newTime = new Date().getTime();
-    if (tokenExpiry - newTime <= 3000) {
-      rp.post({
-        url: 'https://accounts.spotify.com/api/token',
-        headers: {
-          'Authorization': 'Basic ' + (new Buffer(client_id + ':' + client_secret).toString('base64'))
-        },
-        form: {
-          grant_type: 'refresh_token',
-          refresh_token: globalRefreshToken
-        }, json: true
-      }, function (error, response, body) {
-        if (!error && response.statusCode === 200) {
-          console.log(`Refreshed Token, Will expire in: ${body.expires_in}`)
-          globalToken = body.access_token
-          var newTime2 = new Date().getTime();
-          var exp = (Math.floor(body.expires_in / 60) * 7000)
-          tokenExpiry = newTime2 + exp
-          resolve(rp(options))
-        } else {
-          return fail('Error in refresh call')
-        }
-      })
-    } else {
-        resolve(rp(options))
-    }
-  })
-}
 
 var generateRandomString = function(length) {
   var text = '';
@@ -244,39 +202,41 @@ var generateRandomString = function(length) {
 };
 
 const syncToMaster = (host, users) => {
-  let allUsers =[]
-  allUsers.push(host.token)
-  allUsers.concat(users.map(user => user.token))
+console.log('TCL: syncToMaster -> host, users', host, users);
+
+  let allUsers = users
+  allUsers.push(host)
   allUsers.forEach(
     (user) => {
       if (checkCurrentTrack(user).track_uri !== master.track_uri) {
         master = checkCurrentTrack(user)
-        allUsers.splice(allUsers.indexOf(user),1)
-        resync(allUsers, master)
+        resync(allUsers.splice(allUsers.indexOf(user),1), master)
       } 
     })
 }
 
 const resync = (allUsers, master) => {
-  allUsers.forEach(user =>  rp.put(setPlaybackOptions(user,master).then(res => console.log(res))))
+  console.log('TCL: resync -> allUsers, master', allUsers, master.green);
+  allUsers.forEach(user =>  rp(setPlaybackOptions(user,master).then(res => console.log(res)).catch(e => console.log(e))))
 }
 
 const checkCurrentTrack = (user) => {
-  return rp.get(getPlaybackOptions(user)).then((res) => {
+  console.log('TCL: checkCurrentTrack -> user', user.green);
+  return rp(getPlaybackOptions(user)).then((res) => {
     return { 
       track_uri: res.context.uri,
       track_name: res.item.name,
       artist_name: res.item.artist[0].name,
       play_position: res.progress_ms,
-      selector_name: null,
-      selector_token: null}
-  })
+      selector_name: user.name,
+      selector_token: user.token}
+  }).catch(e => console.log(e))
 }
 
-setTimeout(() => {
-  syncToMaster(host, users)
-}, 350);
+// users.length && host.token && setTimeout(() => {
+//   syncToMaster(host, users)
+// }, 350);
 
 app.listen(port, () => {
-  console.log(`Started RCD Server on localhost:${port}`);
+  console.log(`Started RCD Server on localhost:${port}`.green);
 });
