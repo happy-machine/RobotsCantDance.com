@@ -175,9 +175,9 @@ app.get('/callback', function(req, resp) {
           host.name = res.display_name
           return rp(playTrack(host))
         })
-        .then( res => checkCurrentTrack(host, master))
-        .then((res) => {master = res; resp.send(master);console.log('master', master)})
-        .catch(e => console.log('in host callback', e))
+        .then((res) => {return checkCurrentTrack(host, master)})
+        .then((obj) => {console.log('aftercurre',obj);master = obj; resp.send(master);console.log('master', master)})
+        .catch(e => console.log('in host callback', e.message))
         console.log(`Host: ${host}, /// Users: ${users}`)
       } else {
         console.log('error in host post to spotify'.red)
@@ -227,22 +227,23 @@ var generateRandomString = function(length) {
 };
 
 const syncToMaster = ( host, users, resp=false ) => {
-  console.log('OOUUTSIDE THE IF', host, users);
+console.log('TCL: syncToMaster ->  host, users, resp=false',  host, users, resp=false);
+
   if (host.token && users.length){
     console.log('going to sync', host, users);
     let allUsers = users
     allUsers.push(host)
-    console.log('all users'), allUsers
+    console.log('all users', allUsers)
     allUsers.forEach(
       (user) => {
         checkCurrentTrack(user, master)
         .then( result => {
-          if (result.track_uri !== master.track_uri) {
+          if (result && master && result.track_uri !== master.track_uri) {
             master = result
             resp && resp.send(master)
             resync(allUsers.splice(allUsers.indexOf(user),1))
           } else { 
-            console.log('IN SAME TRACK!'.blue)}
+            console.log('In SaME TR4CK!', host,user, master)}
         })
         .catch(e => console.log(e.message))
       })
@@ -253,7 +254,7 @@ const syncToMaster = ( host, users, resp=false ) => {
 
 const resync = (allUsers) => {
   console.log('MASTER FIRST IS ', master)
-  allUsers.forEach(user =>  rp(setPlaybackOptions(user,master)).then(res => console.log(res)).catch(e => console.log(e.message)))
+  allUsers.forEach((user =>  rp(setPlaybackOptions(user,master)).then(res => console.log('AT THE END!', res, user, master)).catch(e => console.log(e.message))))
 }
 
 
@@ -267,19 +268,21 @@ const runDaLoop = () => {
 }
 
 
-const checkCurrentTrack = (user, master) => {
-  console.log('u and m in current check ', user, master)
-  return rp(getPlaybackOptions(user, master)).then((res) => {
-    const master_ref = { 
-      track_uri: res.context.uri,
-      track_name: res.item.name,
-      artist_name: res.item.artists[0].name,
-      play_position: res.progress_ms,
-      selector_name: user.name,
-      selector_token: user.token}
-    return master_ref
+const checkCurrentTrack = (user) => {
+  return new Promise (function (resolve, reject) {
+    return rp(getPlaybackOptions(user)).then((res) => {
+      console.log('res',res)
+      const master_ref = { 
+        track_uri: res.context.uri,
+        track_name: res.item.name,
+        artist_name: res.item.artists[0].name,
+        play_position: res.progress_ms,
+        selector_name: user.name,
+        selector_token: user.token}
+      resolve(master_ref)
+    })
+    .catch(e => reject(e.message))
   })
-  .catch(e => console.log(e.message))
 }
 
 
