@@ -19,13 +19,17 @@ body {
 }
 
 a{
+  text-decoration:'none'!important;
+  color: 'white';
   margin-bottom: 10px;
+  color: white;
   &:hover{
     color: greenyellow!important;
   }
 }
 
 #links{
+  color: white
   margin-top: 40px;
   line-height: 1.7!important;
   text-align: center;

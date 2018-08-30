@@ -31,7 +31,6 @@ app.use(express.static(__dirname + '/public'))
   .use(cors())
   .use(limiter);
 
-
 let master = {
   track_uri: null,
   track_name: null,
@@ -52,14 +51,34 @@ var getUserOptions = (user) => {
 
 var getPlaybackOptions = (user) => {
  return {
-  method: 'GET',
   uri: 'https://api.spotify.com/v1/me/player/currently-playing',
-  headers: { 'Authorization': 'Bearer ' + user.token },
+  headers: { 
+    'Authorization': 'Bearer ' + user.token,
+    'Content-Type': 'application/json'
+  },
   json: true 
  }
 };
 
+var playTrack = (user, uri = 'spotify:user:djfreshmusicuk:playlist:7aZuWmYChm3FiZzYXLVL6a', position = 0) => {
+  return {
+   method: 'PUT',
+   uri: 'https://api.spotify.com/v1/me/player/play',
+   body: {
+    "context_uri": uri,
+    "position_ms": position
+   },
+   headers: { 
+     'Authorization': 'Bearer ' + user.token,
+     'Content-Type': 'application/json'
+   },
+   json: true 
+  }
+ };
+
 var setPlaybackOptions = (user, master) => {
+console.log('HERE IS THE MASTER!', master)
+
   return {
     method: 'PUT',
    uri: 'https://api.spotify.com/v1/me/player/play',
@@ -101,10 +120,10 @@ const wait = (time, res = null) => {
 
 
 app.get('/login', function(req, res) {
-  console.log('IN LOGIN'.green)
   var state = generateRandomString(16);
   res.cookie(stateKey, state);
-  res.redirect('https://accounts.spotify.com/authorize?' +
+  if (!host.token) {
+    res.redirect('https://accounts.spotify.com/authorize?' +
     querystring.stringify({
       response_type: 'code',
       client_id: client_id,
@@ -112,6 +131,9 @@ app.get('/login', function(req, res) {
       redirect_uri: host_redirect_uri,
       state: state
     }));
+  } else {
+    res.redirect('http://localhost:3000/alreadyHosted')
+  }
 });
 
 app.get('/invite', function(req, res) {
@@ -129,32 +151,34 @@ app.get('/invite', function(req, res) {
     }));
   } else { 
     console.log('error in invite'.red)
-    res.redirect('/error?error=NoHostConnected') }
+    res.redirect('http://localhost:3000/error?error=No_Host_Connected') }
 });
 
-app.get('/callback', function(req, res) {
+app.get('/callback', function(req, resp) {
   console.log('IN HOST CALLBACK'.green);
   var code = req.query.code || null;
   var state = req.query.state || null;
   var storedState = req.cookies ? req.cookies[stateKey] : null;
   if (state === null || state !== storedState) {
-    res.redirect('/#' +
+    resp.redirect('/#' +
       querystring.stringify({
         error: 'state_mismatch'
       }));
   } else {
-    res.clearCookie(stateKey);
-  
+    resp.clearCookie(stateKey);
 
     rp.post(authOptions(host_redirect_uri, code), function(error, response, body) {
-      console.log('IN HOST PORT'.green)
       if (!error && response.statusCode === 200) {
         host.token = body.access_token
-        rp(getUserOptions(host)).then((res) => {
+        rp(getUserOptions(host))
+        .then((res) => {
           host.name = res.display_name
-          // res.set('Content-Type', 'application/json')
-        }).catch(e => console.log('in host callback', e))
-        console.log(`Host Name: ${host.name}, Host Token: ${host.token}, Users: ${users}`)
+          return rp(playTrack(host))
+        })
+        .then( res => checkCurrentTrack(host, master))
+        .then((res) => {master = res; resp.send(master);console.log('master', master)})
+        .catch(e => console.log('in host callback', e))
+        console.log(`Host: ${host}, /// Users: ${users}`)
       } else {
         console.log('error in host post to spotify'.red)
       }
@@ -162,18 +186,17 @@ app.get('/callback', function(req, res) {
   }
 });
 
-app.get('/guestcallback', function(req, res) {
-  console.log('IN GUEST CALLBACK'.green)
+app.get('/guestcallback', function(req, resp) {
   var code = req.query.code || null;
   var state = req.query.state || null;
   var storedState = req.cookies ? req.cookies[stateKey] : null;
   if (state === null || state !== storedState) {
-    res.redirect('/#' +
+    resp.redirect('/#' +
       querystring.stringify({
         error: 'state_mismatch'
       }));
   } else {
-    res.clearCookie(stateKey);
+    resp.clearCookie(stateKey);
 
     rp.post(authOptions(guest_redirect_uri, code), function(error, response, body) {
       if (!error && response.statusCode === 200) {
@@ -182,8 +205,10 @@ app.get('/guestcallback', function(req, res) {
         rp(getUserOptions(newUser)).then((res) => {
           newUser.name = res.display_name
           users.push(newUser)
-        }).catch(e => console.log('in guest callback', e))
-        console.log('success token=', host.token,' users: ', users, newUser)
+          resp.redirect('http://localhost:3000/guestLoggedIn')
+          runDaLoop()
+        }).catch(e => console.log('in guest callback', e.message))
+        console.log('host', host,' //// users: ', users)
       } else {
         console.log('error in guest post to spotify'.red)
       }
@@ -201,44 +226,62 @@ var generateRandomString = function(length) {
   return text;
 };
 
-const syncToMaster = (host, users) => {
-console.log('TCL: syncToMaster -> host, users', host, users);
-
-  let allUsers = users
-  allUsers.push(host)
-  allUsers.forEach(
-    (user) => {
-      if (checkCurrentTrack(user).track_uri !== master.track_uri) {
-        master = checkCurrentTrack(user)
-        resync(allUsers.splice(allUsers.indexOf(user),1), master)
-      } 
-    })
+const syncToMaster = ( host, users, resp=false ) => {
+  console.log('OOUUTSIDE THE IF', host, users);
+  if (host.token && users.length){
+    console.log('going to sync', host, users);
+    let allUsers = users
+    allUsers.push(host)
+    console.log('all users'), allUsers
+    allUsers.forEach(
+      (user) => {
+        checkCurrentTrack(user, master)
+        .then( result => {
+          if (result.track_uri !== master.track_uri) {
+            master = result
+            resp && resp.send(master)
+            resync(allUsers.splice(allUsers.indexOf(user),1))
+          } else { 
+            console.log('IN SAME TRACK!'.blue)}
+        })
+        .catch(e => console.log(e.message))
+      })
+  } else {
+    console.log('TCL: host, users,', host, users);
+  }
 }
 
-const resync = (allUsers, master) => {
-  console.log('TCL: resync -> allUsers, master', allUsers, master.green);
-  allUsers.forEach(user =>  rp(setPlaybackOptions(user,master)).then(res => console.log(res)).catch(e => console.log(e)))
+const resync = (allUsers) => {
+  console.log('MASTER FIRST IS ', master)
+  allUsers.forEach(user =>  rp(setPlaybackOptions(user,master)).then(res => console.log(res)).catch(e => console.log(e.message)))
 }
 
-const checkCurrentTrack = (user) => {
-  console.log('TCL: checkCurrentTrack -> user', user.green);
-  return rp(getPlaybackOptions(user)).then((res) => {
-    return { 
+
+// polling loop at 1s
+ 
+const runDaLoop = () => {
+  setTimeout(() => {
+    console.log('running loop')
+    syncToMaster(host, users)
+  }, 1000); 
+}
+
+
+const checkCurrentTrack = (user, master) => {
+  console.log('u and m in current check ', user, master)
+  return rp(getPlaybackOptions(user, master)).then((res) => {
+    const master_ref = { 
       track_uri: res.context.uri,
       track_name: res.item.name,
-      artist_name: res.item.artist[0].name,
+      artist_name: res.item.artists[0].name,
       play_position: res.progress_ms,
       selector_name: user.name,
       selector_token: user.token}
-  }).catch(e => console.log(e))
+    return master_ref
+  })
+  .catch(e => console.log(e.message))
 }
 
-app.get('/start', function(req, res) {
-  console.log('in loop'.flashing)
-  setTimeout(() => {
-    syncToMaster(host, users)
-  }, 350);
-});
 
 app.listen(port, () => {
   console.log(`Started RCD Server on localhost:${port}`.green);
