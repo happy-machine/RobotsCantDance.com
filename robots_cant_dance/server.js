@@ -4,6 +4,7 @@ const port = process.env.PORT || 5000;
 var _ = require ('lodash')
 var express = require('express'); 
 var cors = require('cors')
+const playbackDelay = 200
 var colors = require('colors');
 var querystring = require('querystring');
 var cookieParser = require('cookie-parser');
@@ -87,7 +88,7 @@ var playTrack = (user, uri = 'spotify:track:0yKhFtDzzxV1t0VpM37uLp', position = 
   }
  };
 
-var setPlaybackOptions = (user, master, delay = 0) => {
+var setPlaybackOptions = (user, master, delay = 1) => {
 console.log('setting playback to uri: ', master.track_uri, 'position: ', master.play_position, 'for: ', user.name)
 
   return {
@@ -171,6 +172,7 @@ app.get('/callback', function(req, resp) {
         rp(getUserOptions(host))
         .then((res) => {
           host.name = res.display_name
+          resp.redirect('http://localhost:3000/hostLoggedIn')
         })
         .catch(e => console.log('in host callback', e.message))
       } else {
@@ -203,7 +205,7 @@ app.get('/guestcallback', function(req, resp) {
         })
         .then( (obj) => {
           master = obj;
-          return rp(setPlaybackOptions(newUser, master, 1000))
+          return rp(setPlaybackOptions(newUser, master, playbackDelay))
         })
         .then( (res) => {
           users.push(newUser)
@@ -220,7 +222,7 @@ app.get('/guestcallback', function(req, resp) {
 });
 
 
-const syncToMaster = ( host, users, resp=false ) => {
+const syncToMaster = ( host, users) => {
 console.log('in sync to master ', host.token, ' and lenght of users ', users.length, ' and users: ', users)
   if (host.token && users.length){
     console.log('going to sync', host, users);
@@ -228,16 +230,17 @@ console.log('in sync to master ', host.token, ' and lenght of users ', users.len
     allUsers.push(host)
     allUsers.forEach(
       (user) => {
-        return checkCurrentTrack(user, master)
+        console.log('USER: ', user)
+        checkCurrentTrack(user)
         .then( result => {
           console.log('current user', user,'result', result , 'master', master)
-          if (result && master && (result.track_uri !== master.track_uri)) {
+          if (result.track_uri !== master.track_uri) {
             master = result
             console.log('resyncing ', master.track_uri, ' to ', result.track_uri,' played by ', result.selector_name)
             console.log('sending THIS to resync', (allUsers.splice(allUsers.indexOf(user),1)))
             resync(allUsers.splice(allUsers.indexOf(user),1))
           } else { 
-            console.log('In SaME TR4CK!', host,user, master)}
+            console.log('In SaME TR4CK!', host.track_uri,' and ', master.track_uri)}
         })
         .catch(e => console.log(e.message))
       })
@@ -249,7 +252,7 @@ console.log('in sync to master ', host.token, ' and lenght of users ', users.len
 const resync = (allUsers) => {
   console.log('MASTER FIRST IS ', master)
   allUsers.forEach((user =>  
-    rp(setPlaybackOptions(user,master,1000))
+    rp(setPlaybackOptions(user,master,playbackDelay))
     .then(res => console.log('AT THE END!', res, user, master))
     .catch(e => console.log(e.message))))
 }

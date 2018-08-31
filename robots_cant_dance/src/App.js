@@ -15,9 +15,9 @@ class App extends Component {
         <div className="container">
       <Route path="/" exact component={HomePage} />
       <Route path="/invite" component={InvitePage} />
-      <Route path="/loggedin" component={LoggedIn} />
+      <Route path="/hostLoggedin" component={hostLoggedIn} />
       <Route path="/alreadyHosted" component={alreadyHosted} />
-      <Route path="/guestLoggedIn" component={LoggedIn} />
+      <Route path="/guestLoggedIn" component={guestLoggedIn} />
       <Route path="/error" component={Error} />
     </div>
     </BrowserRouter>
@@ -29,8 +29,11 @@ class App extends Component {
 const InvitePage = () => {
   return <a style={{textDecoration:'none', color: 'white'}} href={`http://localhost:${PORT}/invite`}>Login to Spotify and join the party</a>
 }
-const LoggedIn = () => {
-  return <div id="links" style={{textDecoration:'none', color: 'white'}}>Logged In!</div>
+const hostLoggedIn = () => {
+  return <div id="links" style={{textDecoration:'none', color: 'white'}}>Host Logged In!</div>
+}
+const guestLoggedIn = () => {
+  return <div id="links" style={{textDecoration:'none', color: 'white'}}>Guest Logged In!</div>
 }
 const alreadyHosted = () => {
   return <div id="links">
