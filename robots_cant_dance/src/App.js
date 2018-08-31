@@ -16,6 +16,7 @@ class App extends Component {
       <Route path="/" exact component={HomePage} />
       <Route path="/invite" component={InvitePage} />
       <Route path="/loggedin" component={LoggedIn} />
+      <Route path="/room" component={Room} />
       <Route path="/alreadyHosted" component={alreadyHosted} />
       <Route path="/guestLoggedIn" component={LoggedIn} />
       <Route path="/error" component={Error} />
@@ -31,6 +32,9 @@ const InvitePage = () => {
 }
 const LoggedIn = () => {
   return <div id="links" style={{textDecoration:'none', color: 'white'}}>Logged In!</div>
+}
+const Room = () => {
+  return <div id="links" style={{textDecoration:'none', color: 'white'}}>You're in the room</div>
 }
 const alreadyHosted = () => {
   return <div id="links">
