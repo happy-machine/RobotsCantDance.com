@@ -71,22 +71,6 @@ var getPlaybackOptions = (user) => {
  }
 };
 
-var playTrack = (user, uri = 'spotify:track:0yKhFtDzzxV1t0VpM37uLp', position = 0) => {
-  console.log('playing track on :', user.name)
-  return {
-   method: 'PUT',
-   uri: 'https://api.spotify.com/v1/me/player/play',
-   body: {
-    "uris": [uri],
-    "position_ms": position
-   },
-   headers: { 
-     'Authorization': 'Bearer ' + user.token,
-     'Content-Type': 'application/json'
-   },
-   json: true 
-  }
- };
 
 var setPlaybackOptions = (user, master, delay = 1) => {
 console.log('setting playback to uri: ', master.track_uri, 'position: ', master.play_position, 'for: ', user.name)
