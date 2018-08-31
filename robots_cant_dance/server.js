@@ -4,8 +4,8 @@ const port = process.env.PORT || 5000;
 var _ = require ('lodash')
 var express = require('express'); 
 var cors = require('cors')
-const playbackDelay = 200
-var colors = require('colors');
+const playbackDelay = 0
+// playbackDelay pushes the track 'back'
 var querystring = require('querystring');
 var cookieParser = require('cookie-parser');
 const rp = require('request-promise')
@@ -19,18 +19,13 @@ var host = {
 }
 let users = [];
 // var tokenExpiry = new Date().getTime();
-var RateLimit = require('express-rate-limit');
-var limiter = new RateLimit({
-  windowMs: 10*60*60*1000, // 10 hour window
-  max: 250
-});
+
 const PERMISSIONS_SCOPE = 'user-read-currently-playing user-modify-playback-state user-read-playback-state streaming user-read-private';
 var stateKey = 'spotify_auth_state';
 var app = express();
 app.use(express.static(__dirname + '/public'))
   .use(cookieParser())
   .use(cors())
-  .use(limiter);
 
 
 var generateRandomString = function(length) {
@@ -42,6 +37,14 @@ var generateRandomString = function(length) {
   return text;
 };
 
+let wait_promise = (time) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve()
+    }, time);
+  })
+
+}
 let master = {
   track_uri: null,
   track_name: null,
@@ -192,9 +195,10 @@ app.get('/guestcallback', function(req, resp) {
           return rp(setPlaybackOptions(newUser, master, playbackDelay))
         })
         .then( (res) => {
-          users.push(newUser)
+          console.log('adding newUser to ',...users)
+          users = [...users,newUser]
           resp.redirect('http://localhost:3000/guestLoggedIn')
-          runDaLoop()
+          pollUsersPlayback()
         })
         .catch(e => console.log('in guest callback', e.message))
       } else {
@@ -207,24 +211,23 @@ app.get('/guestcallback', function(req, resp) {
 
 
 const syncToMaster = ( host, users) => {
-console.log('in sync to master ', host.token, ' and lenght of users ', users.length, ' and users: ', users)
+  console.log('USERS CHECKING ARE ', users)
   if (host.token && users.length){
-    console.log('going to sync', host, users);
-    let allUsers = users
-    allUsers.push(host)
-    allUsers.forEach(
+    let allUsers = [...users, host]
+    allUsers.some(
       (user) => {
-        console.log('USER: ', user)
-        checkCurrentTrack(user)
+        wait_promise(350)
+        .then(() => checkCurrentTrack(user))
         .then( result => {
-          console.log('current user', user,'result', result , 'master', master)
           if (result.track_uri !== master.track_uri) {
-            master = result
+            console.log('current user', user.name,'result', result.track_uri , 'master', master.track_uri)
             console.log('resyncing ', master.track_uri, ' to ', result.track_uri,' played by ', result.selector_name)
-            console.log('sending THIS to resync', (allUsers.splice(allUsers.indexOf(user),1)))
-            resync(allUsers.splice(allUsers.indexOf(user),1))
+            master = result
+            allUsers.splice(allUsers.indexOf(user),1)
+            resync(allUsers, master)
+            return true
           } else { 
-            console.log('In SaME TR4CK!', host.track_uri,' and ', master.track_uri)}
+            console.log('In SaME TR4CK!', result.track_uri,' and ', master.track_uri)}
         })
         .catch(e => console.log(e.message))
       })
@@ -233,24 +236,18 @@ console.log('in sync to master ', host.token, ' and lenght of users ', users.len
   }
 }
 
-const resync = (allUsers) => {
-  console.log('MASTER FIRST IS ', master)
+const resync = (allUsers, master) => {
+  console.log('IN RESYNC!!! allUsers ', allUsers)
   allUsers.forEach((user =>  
     rp(setPlaybackOptions(user,master,playbackDelay))
-    .then(res => console.log('AT THE END!', res, user, master))
+    .then(res => console.log('SYNCED!', res, user, master))
     .catch(e => console.log(e.message))))
 }
 
 // polling loop at 1s
  
-const runDaLoop = () => {
-  const host_in = host
-  const users_in = users
-  let times = 0
-  setTimeout(() => {
-    console.log('running loop ', times += 1)
-    syncToMaster(host_in, users_in)
-  }, 1000); 
+const pollUsersPlayback = () => {
+  setInterval(() => syncToMaster(host, users), 350 * (users.length + 1)); 
 }
 
 
