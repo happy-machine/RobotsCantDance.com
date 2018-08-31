@@ -70,12 +70,13 @@ var getPlaybackOptions = (user) => {
  }
 };
 
-var playTrack = (user, uri = 'spotify:user:djfreshmusicuk:playlist:7aZuWmYChm3FiZzYXLVL6a', position = 0) => {
+var playTrack = (user, uri = 'spotify:track:0yKhFtDzzxV1t0VpM37uLp', position = 0) => {
+  console.log('playing track on :', user.name)
   return {
    method: 'PUT',
    uri: 'https://api.spotify.com/v1/me/player/play',
    body: {
-    "context_uri": uri,
+    "uris": [uri],
     "position_ms": position
    },
    headers: { 
@@ -198,9 +199,8 @@ app.get('/guestcallback', function(req, resp) {
         rp(getUserOptions(newUser))
         .then( (res) => {
           newUser.name = res.display_name
-          return rp(playTrack(host))
+          return checkCurrentTrack(host, master)
         })
-        .then( () => checkCurrentTrack(host, master))
         .then( (obj) => {
           console.log('OBJECT!!!!!', obj, 'new user', newUser)
           master = obj;
