@@ -31,6 +31,16 @@ app.use(express.static(__dirname + '/public'))
   .use(cors())
   .use(limiter);
 
+
+var generateRandomString = function(length) {
+  var text = '';
+  var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  for (var i = 0; i < length; i++) {
+    text += possible.charAt(Math.floor(Math.random() * possible.length));
+  }
+  return text;
+};
+
 let master = {
   track_uri: null,
   track_name: null,
@@ -77,7 +87,7 @@ var playTrack = (user, uri = 'spotify:user:djfreshmusicuk:playlist:7aZuWmYChm3Fi
  };
 
 var setPlaybackOptions = (user, master) => {
-console.log('HERE IS THE MASTER!', master)
+console.log('setting playback to uri: ', master.track_uri, 'position: ', master.play_position, 'for: ', user.name)
 
   return {
     method: 'PUT',
@@ -85,10 +95,7 @@ console.log('HERE IS THE MASTER!', master)
    headers: { 'Authorization': 'Bearer ' + user.token },
    json: true ,
    body: {
-      "context_uri": master.track_uri,
-      "offset": {
-        "position": 1
-      },
+      "uris": [master.track_uri],
       "position_ms": master.play_position
     }
    }
@@ -109,15 +116,6 @@ let authOptions = (redirect_uri, code) => {
   }
 }
 
-const wait = (time, res = null) => {
-    return new Promise((resolve, fail) => {
-      setTimeout(() => {
-        resolve(res)
-      }, time);
-    })
-  }
-  
-
 
 app.get('/login', function(req, res) {
   var state = generateRandomString(16);
@@ -137,7 +135,6 @@ app.get('/login', function(req, res) {
 });
 
 app.get('/invite', function(req, res) {
- console.log('IN INVITE'.green)
   var state = generateRandomString(16);
   res.cookie(stateKey, state);
   if (host.token) {
@@ -173,12 +170,8 @@ app.get('/callback', function(req, resp) {
         rp(getUserOptions(host))
         .then((res) => {
           host.name = res.display_name
-          return rp(playTrack(host))
         })
-        .then((res) => {return checkCurrentTrack(host, master)})
-        .then((obj) => {console.log('aftercurre',obj);master = obj; resp.send(master);console.log('master', master)})
         .catch(e => console.log('in host callback', e.message))
-        console.log(`Host: ${host}, /// Users: ${users}`)
       } else {
         console.log('error in host post to spotify'.red)
       }
@@ -202,42 +195,44 @@ app.get('/guestcallback', function(req, resp) {
       if (!error && response.statusCode === 200) {
         let newUser = {}
         newUser.token = body.access_token
-        rp(getUserOptions(newUser)).then((res) => {
+        rp(getUserOptions(newUser))
+        .then( (res) => {
           newUser.name = res.display_name
+          return rp(playTrack(host))
+        })
+        .then( () => checkCurrentTrack(host, master))
+        .then( (obj) => {
+          console.log('OBJECT!!!!!', obj, 'new user', newUser)
+          master = obj;
+          return rp(setPlaybackOptions(newUser, master))
+        })
+        .then( (res) => {
+          console.log('playing copy ', res)
           users.push(newUser)
           resp.redirect('http://localhost:3000/guestLoggedIn')
           runDaLoop()
-        }).catch(e => console.log('in guest callback', e.message))
-        console.log('host', host,' //// users: ', users)
+        })
+        .catch(e => console.log('in guest callback', e.message))
       } else {
         console.log('error in guest post to spotify'.red)
       }
-    }).catch(e => console.log('error in guest callback rp.post'.red));
+    })
+    .catch(e => console.log('error in guest callback rp.post'.red));
   }
 });
 
 
-var generateRandomString = function(length) {
-  var text = '';
-  var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  for (var i = 0; i < length; i++) {
-    text += possible.charAt(Math.floor(Math.random() * possible.length));
-  }
-  return text;
-};
-
 const syncToMaster = ( host, users, resp=false ) => {
-console.log('TCL: syncToMaster ->  host, users, resp=false',  host, users, resp=false);
 
   if (host.token && users.length){
     console.log('going to sync', host, users);
     let allUsers = users
     allUsers.push(host)
-    console.log('all users', allUsers)
     allUsers.forEach(
       (user) => {
         checkCurrentTrack(user, master)
         .then( result => {
+          console.log('current user', user,'result', result , 'master', master)
           if (result && master && result.track_uri !== master.track_uri) {
             master = result
             resp && resp.send(master)
@@ -248,22 +243,26 @@ console.log('TCL: syncToMaster ->  host, users, resp=false',  host, users, resp=
         .catch(e => console.log(e.message))
       })
   } else {
-    console.log('TCL: host, users,', host, users);
+    console.log('no host token AND user length host: ', host,' users: ', users);
   }
 }
 
 const resync = (allUsers) => {
   console.log('MASTER FIRST IS ', master)
-  allUsers.forEach((user =>  rp(setPlaybackOptions(user,master)).then(res => console.log('AT THE END!', res, user, master)).catch(e => console.log(e.message))))
+  allUsers.forEach((user =>  
+    rp(setPlaybackOptions(user,master))
+    .then(res => console.log('AT THE END!', res, user, master))
+    .catch(e => console.log(e.message))))
 }
-
 
 // polling loop at 1s
  
 const runDaLoop = () => {
+  const host_in = host
+  const users_in = users
   setTimeout(() => {
     console.log('running loop')
-    syncToMaster(host, users)
+    syncToMaster(host_in, users_in)
   }, 1000); 
 }
 
@@ -271,15 +270,14 @@ const runDaLoop = () => {
 const checkCurrentTrack = (user) => {
   return new Promise (function (resolve, reject) {
     return rp(getPlaybackOptions(user)).then((res) => {
-      console.log('res',res)
       const master_ref = { 
-        track_uri: res.context.uri,
+        track_uri: res.item.uri,
         track_name: res.item.name,
         artist_name: res.item.artists[0].name,
         play_position: res.progress_ms,
         selector_name: user.name,
         selector_token: user.token}
-      resolve(master_ref)
+      return resolve(master_ref)
     })
     .catch(e => reject(e.message))
   })
