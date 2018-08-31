@@ -87,7 +87,7 @@ var playTrack = (user, uri = 'spotify:track:0yKhFtDzzxV1t0VpM37uLp', position = 
   }
  };
 
-var setPlaybackOptions = (user, master) => {
+var setPlaybackOptions = (user, master, delay = 0) => {
 console.log('setting playback to uri: ', master.track_uri, 'position: ', master.play_position, 'for: ', user.name)
 
   return {
@@ -97,7 +97,7 @@ console.log('setting playback to uri: ', master.track_uri, 'position: ', master.
    json: true ,
    body: {
       "uris": [master.track_uri],
-      "position_ms": master.play_position
+      "position_ms": master.play_position - delay
     }
    }
  };
@@ -202,12 +202,10 @@ app.get('/guestcallback', function(req, resp) {
           return checkCurrentTrack(host, master)
         })
         .then( (obj) => {
-          console.log('OBJECT!!!!!', obj, 'new user', newUser)
           master = obj;
-          return rp(setPlaybackOptions(newUser, master))
+          return rp(setPlaybackOptions(newUser, master, 1000))
         })
         .then( (res) => {
-          console.log('playing copy ', res)
           users.push(newUser)
           resp.redirect('http://localhost:3000/guestLoggedIn')
           runDaLoop()
@@ -223,19 +221,20 @@ app.get('/guestcallback', function(req, resp) {
 
 
 const syncToMaster = ( host, users, resp=false ) => {
-
+console.log('in sync to master ', host.token, ' and lenght of users ', users.length, ' and users: ', users)
   if (host.token && users.length){
     console.log('going to sync', host, users);
     let allUsers = users
     allUsers.push(host)
     allUsers.forEach(
       (user) => {
-        checkCurrentTrack(user, master)
+        return checkCurrentTrack(user, master)
         .then( result => {
           console.log('current user', user,'result', result , 'master', master)
-          if (result && master && result.track_uri !== master.track_uri) {
+          if (result && master && (result.track_uri !== master.track_uri)) {
             master = result
-            resp && resp.send(master)
+            console.log('resyncing ', master.track_uri, ' to ', result.track_uri,' played by ', result.selector_name)
+            console.log('sending THIS to resync', (allUsers.splice(allUsers.indexOf(user),1)))
             resync(allUsers.splice(allUsers.indexOf(user),1))
           } else { 
             console.log('In SaME TR4CK!', host,user, master)}
@@ -250,7 +249,7 @@ const syncToMaster = ( host, users, resp=false ) => {
 const resync = (allUsers) => {
   console.log('MASTER FIRST IS ', master)
   allUsers.forEach((user =>  
-    rp(setPlaybackOptions(user,master))
+    rp(setPlaybackOptions(user,master,1000))
     .then(res => console.log('AT THE END!', res, user, master))
     .catch(e => console.log(e.message))))
 }
@@ -260,8 +259,9 @@ const resync = (allUsers) => {
 const runDaLoop = () => {
   const host_in = host
   const users_in = users
+  let times = 0
   setTimeout(() => {
-    console.log('running loop')
+    console.log('running loop ', times += 1)
     syncToMaster(host_in, users_in)
   }, 1000); 
 }
