@@ -58,7 +58,7 @@ app.get('/login', function (req, res) {
 
 app.get('/invite', function (req, res) {
     console.log('IN INVITE');
-    if (host.token) {
+    if (req.query.room_id) {
         res.redirect('https://accounts.spotify.com/authorize?' +
             querystring.stringify({
                 response_type: 'code',
@@ -109,14 +109,22 @@ app.get('/callback', function (req, resp) {
 
 app.get('/guestcallback', function (req, resp) {
     var code = req.query.code || null;
+    var room_id = req.query.room_id || null;
     rp.post(spotify.authOptions(GUEST_REDIRECT_URI, code), function (error, response, body) {
         if (!error && response.statusCode === 200) {
             var newUser = {};
             newUser.token = body.access_token;
             rp(spotify.getUserOptions(newUser)).then((res) => {
                 newUser.name = res.display_name;
-                users.push(newUser);
-                resp.redirect('http://localhost:3000/guestLoggedIn');
+                rooms.forEach((room) =>{
+                    if(room.invite_code === room_id){
+                        room.users.push(newUser);
+                    }
+                });
+                resp.redirect('http://localhost:3000/room?' +
+                    querystring.stringify({
+                        room_id: room_id
+                    }));
                 runDaLoop();
             }).catch(e => console.log('in guest callback', e.message));
             console.log('host', host, ' //// users: ', users);
@@ -167,7 +175,8 @@ var generateRandomString = function (length) {
     for (var i = 0; i < length; i++) {
         text += possible.charAt(Math.floor(Math.random() * possible.length));
     }
-    return text;
+    // return text;
+    return 'ABC1234';
 };
 
 

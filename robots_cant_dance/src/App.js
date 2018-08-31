@@ -46,7 +46,7 @@ const HomePage = () => {
   return (
     <div id="links">
     <a style={{lineHeight: '10px', marginBottom: '10px', textDecoration:'none', color: 'white'}} href={`http://localhost:${PORT}/login`}>Login to Spotify and host </a><br />
-    <a style={{lineHeight: '10px', marginBottom: '10px', textDecoration:'none', color: 'white'}} href={`http://localhost:${PORT}/invite`}>Login and join existing </a><br />
+    <a style={{lineHeight: '10px', marginBottom: '10px', textDecoration:'none', color: 'white'}} href={`http://localhost:${PORT}/invite?room_id=ABC1234`}>Login and join existing </a><br />
     </div>
   );
 }
