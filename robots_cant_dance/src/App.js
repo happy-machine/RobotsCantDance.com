@@ -45,8 +45,8 @@ const alreadyHosted = () => {
 const HomePage = () => {
   return (
     <div className="links">
-    <a style={{textDecoration:'none'}} href={`http://localhost:${PORT}/login`}>Login to Spotify and host </a><br />
-    <a style={{textDecoration:'none'}} href={`http://localhost:${PORT}/invite`}>Login and join existing </a><br />
+    <a style={{textDecoration:'none'}} href={`http://localhost:${PORT}/login`}>Login to Spotify and host a session </a><br />
+    <a style={{textDecoration:'none'}} href={`http://localhost:${PORT}/invite`}>Join an existing session</a><br />
     </div>
   );
 }
