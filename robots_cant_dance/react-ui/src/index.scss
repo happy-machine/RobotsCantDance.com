@@ -1,0 +1,65 @@
+$brown: #956400;
+$green: #009900;
+$dark_green: #056600;
+$font_main: Arial rounded MT Bold;
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: sans-serif;
+  background-image: url('assets/RCD_bg.png');
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.App {
+  background-image: url('assets/RCD_bg.png');
+  background-repeat: no-repeat;
+  height: 700px;
+  width: auto;
+  font-family: $font_main
+}
+
+#RCD_Logo{
+  margin: 10px;
+  background: url('assets/RCD_LOGO.png');
+  background-repeat: no-repeat;
+  background-size: contain;
+  width: 120px;
+  height: 120px;
+}
+
+a{
+  font-family: $font_main;
+  text-decoration:'none'!important;
+  color: 'white';
+  margin-bottom: 10px;
+  color: white;
+  &:hover{
+    color: greenyellow!important;
+  }
+}
+
+.links {
+  color: white;
+  margin-top: 40px;
+  line-height: 1.7!important;
+  text-align: center;
+  display: block;
+  &:hover{
+    color: greenyellow!important;
+  }
+}
+
+
+.info {
+  color: white;
+  margin-top: 40px;
+  line-height: 1.7!important;
+  text-align: center;
+  display: block;
+}
+
+.error {
+  color: rgb(255, 138, 138);
+}
