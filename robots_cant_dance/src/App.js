@@ -11,6 +11,7 @@ class App extends Component {
   render() {
     return (
       <div className="App" >
+      <div id="RCD_Logo" />
         <BrowserRouter>
         <div className="container">
       <Route path="/" exact component={HomePage} />
@@ -27,25 +28,25 @@ class App extends Component {
 }
 
 const InvitePage = () => {
-  return <a style={{textDecoration:'none', color: 'white'}} href={`http://localhost:${PORT}/invite`}>Login to Spotify and join the party</a>
+  return <a className="links" style={{textDecoration:'none'}} href={`http://localhost:${PORT}/invite`}>Login to Spotify and join the party</a>
 }
 const hostLoggedIn = () => {
-  return <div id="links" style={{textDecoration:'none', color: 'white'}}>Host Logged In!</div>
+  return <div className="info" >Host Logged In!</div>
 }
 const guestLoggedIn = () => {
-  return <div id="links" style={{textDecoration:'none', color: 'white'}}>Guest Logged In!</div>
+  return <div className="info" >Guest Logged In!</div>
 }
 const alreadyHosted = () => {
-  return <div id="links">
+  return <div className="links">
     <div style={{color:'red'}} >There is already a host</div>
-    <a style={{lineHeight: '10px', marginBottom: '10px', textDecoration:'none', color: 'white'}} href={`http://localhost:${PORT}/invite`}>Login and join existing room </a><br />
+    <a style={{textDecoration:'none'}} href={`http://localhost:${PORT}/invite`}>Login and join existing room </a><br />
   </div>
 }
 const HomePage = () => {
   return (
-    <div id="links">
-    <a style={{lineHeight: '10px', marginBottom: '10px', textDecoration:'none', color: 'white'}} href={`http://localhost:${PORT}/login`}>Login to Spotify and host </a><br />
-    <a style={{lineHeight: '10px', marginBottom: '10px', textDecoration:'none', color: 'white'}} href={`http://localhost:${PORT}/invite`}>Login and join existing </a><br />
+    <div className="links">
+    <a style={{textDecoration:'none'}} href={`http://localhost:${PORT}/login`}>Login to Spotify and host </a><br />
+    <a style={{textDecoration:'none'}} href={`http://localhost:${PORT}/invite`}>Login and join existing </a><br />
     </div>
   );
 }
@@ -53,6 +54,6 @@ const HomePage = () => {
 const Error = () => {
 
   const message = window.location.search.slice(window.location.search.indexOf('=') + 1, window.location.search.length)
-  return <div><br /><div style={{color: 'red'}}>Error logging into Spotify {message.split('_').join(' ')}</div></div>
+  return <div><br /><div className ="error" >Error logging into Spotify {message.split('_').join(' ')}</div></div>
 }
 export default App;

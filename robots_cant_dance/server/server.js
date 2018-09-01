@@ -1,15 +1,19 @@
 const express = require('express');
+var spotify = require('./spotify-functions');
 const app = express();
+require('dotenv').config();
+
 const SERVER_PORT = process.env.PORT || 5000;
 const CLIENT_PORT = process.env.CLIENT_PORT || 3000;
+
 const _ = require ('lodash')
 const cors = require('cors')
 // playbackDelay pushes the track 'back'
 const querystring = require('querystring');
 const cookieParser = require('cookie-parser');
 const rp = require('request-promise')
-const CLIENT_ID = 'dd991e3ab8114a45bafbd430281adc65'; 
-const CLIENT_SECRET = 'e3d433cb69314a93a86e917aa36f1f12'; 
+const CLIENT_ID = process.env.CLIENT_ID; 
+const CLIENT_SECRET = process.env.CLIENT_SECRET; 
 const ERROR = 'ERROR'
 const DEPLOY = 'deploy'
 const LOCAL = 'local'
@@ -76,55 +80,6 @@ let master = {
   selector_token: null
 }
 
-const getUserOptions = (user) => {
-  return { 
-    method: 'GET',
-    uri: 'https://api.spotify.com/v1/me',
-    headers: { 'Authorization': 'Bearer ' + user.token },
-    json: true 
-  }
-};
-
-const getPlaybackOptions = (user) => {
- return {
-  uri: 'https://api.spotify.com/v1/me/player/currently-playing',
-  headers: { 
-    'Authorization': 'Bearer ' + user.token,
-    'Content-Type': 'application/json'
-  },
-  json: true 
- }
-};
-
-const setPlaybackOptions = (user, master, delay = 1) => {
-console.log('setting playback to uri: ', master.track_uri, 'position: ', master.play_position, 'for: ', user.name)
-
-  return {
-    method: 'PUT',
-   uri: 'https://api.spotify.com/v1/me/player/play',
-   headers: { 'Authorization': 'Bearer ' + user.token },
-   json: true ,
-   body: {
-      "uris": [master.track_uri],
-      "position_ms": master.play_position - delay
-    }
-   }
- };
-
-const authOptions = (redirect_uri, code) => {
-    return {
-    url: 'https://accounts.spotify.com/api/token',
-    form: {
-      code: code,
-      redirect_uri: redirect_uri,
-      grant_type: 'authorization_code'
-    },
-    headers: {
-      'Authorization': 'Basic ' + (new Buffer(CLIENT_ID + ':' + CLIENT_SECRET).toString('base64'))
-    },
-    json: true
-  }
-}
 
 app.get('/login', function(req, res) {
   const state = generateRandomString(16);
@@ -156,7 +111,7 @@ app.get('/invite', function(req, res) {
       state: state
     }));
   } else { 
-    res.redirect(URLfactory('No_Host_Connected', ERROR)) 
+    res.redirect(URLfactory('no_Host_Connected', ERROR)) 
   }
 });
 
@@ -172,17 +127,17 @@ app.get('/callback', function(req, res) {
   } else {
     res.clearCookie(STATE_KEY);
 
-    rp.post(authOptions(HOST_REDIRECT_URI, code), function(error, response, body) {
+    rp.post(spotify.authOptions(HOST_REDIRECT_URI, code), function(error, response, body) {
       if (!error && response.statusCode === 200) {
         host.token = body.access_token
-        rp(getUserOptions(host))
+        rp(spotify.getUserOptions(host))
         .then((user_details) => {
           host.name = user_details.display_name
           res.redirect(URLfactory('hostLoggedIn'))
         })
-        .catch( e => res.redirect(URLfactory('Get_host_options', ERROR)) )
+        .catch( e => res.redirect(URLfactory('getting_host_options', ERROR)) )
       } else {
-        res.redirect(URLfactory('Spotify_host_auth', ERROR))
+        res.redirect(URLfactory('spotify_host_auth', ERROR))
       }
     })
   }
@@ -200,18 +155,18 @@ app.get('/guestcallback', function(req, res) {
   } else {
     res.clearCookie(STATE_KEY);
 
-    rp.post(authOptions(GUEST_REDIRECT_URI, code), function(error, response, body) {
+    rp.post(spotify.authOptions(GUEST_REDIRECT_URI, code), function(error, response, body) {
       if (!error && response.statusCode === 200) {
         let newUser = {}
         newUser.token = body.access_token
-        rp(getUserOptions(newUser))
+        rp(spotify.getUserOptions(newUser))
         .then( (user_details) => {
           newUser.name = user_details.display_name
           return checkCurrentTrack(host, master)
         })
         .then( (obj) => {
           master = obj;
-          return rp(setPlaybackOptions(newUser, master, playbackDelay))
+          return rp(spotify.setPlaybackOptions(newUser, master, playbackDelay))
         })
         .then( () => {
           users = [...users,newUser]
@@ -220,10 +175,10 @@ app.get('/guestcallback', function(req, res) {
         })
         .catch( e =>  {
           console.log('Error in guest sync: ', e)
-          res.redirect(URLfactory('Guest_sync', ERROR))
+          res.redirect(URLfactory('guest_sync', ERROR))
         })
       } else {
-        res.redirect(URLfactory('Guest_callback', ERROR))
+        res.redirect(URLfactory('guest_callback', ERROR))
       }
     })
   }
@@ -255,7 +210,7 @@ const syncToMaster = ( host, users) => {
 
 const resync = (allUsers, master) => {
   allUsers.forEach((user =>  
-    rp(setPlaybackOptions(user,master,playbackDelay))
+    rp(spotify.setPlaybackOptions(user,master,playbackDelay))
     .then(() => console.log(`Synced ${user} to ${master}`))
     .catch(e => console.log(e.message))))
 }
@@ -268,7 +223,7 @@ const pollUsersPlayback = () => {
 
 const checkCurrentTrack = (user) => {
   return new Promise (function (resolve, reject) {
-    return rp(getPlaybackOptions(user)).then((res) => {
+    return rp(spotify.getPlaybackOptions(user)).then((res) => {
       const master_ref = { 
         track_uri: res.item.uri,
         track_name: res.item.name,

@@ -18,6 +18,15 @@ body {
   width: auto;
 }
 
+#RCD_Logo{
+  margin: 10px;
+  background: url('assets/RCD_LOGO.png');
+  background-repeat: no-repeat;
+  background-size: contain;
+  width: 120px;
+  height: 120px;
+}
+
 a{
   text-decoration:'none'!important;
   color: 'white';
@@ -28,8 +37,8 @@ a{
   }
 }
 
-#links{
-  color: white
+.links {
+  color: white;
   margin-top: 40px;
   line-height: 1.7!important;
   text-align: center;
@@ -37,4 +46,17 @@ a{
   &:hover{
     color: greenyellow!important;
   }
+}
+
+
+.info {
+  color: white;
+  margin-top: 40px;
+  line-height: 1.7!important;
+  text-align: center;
+  display: block;
+}
+
+.error {
+  color: rgb(255, 138, 138);
 }
