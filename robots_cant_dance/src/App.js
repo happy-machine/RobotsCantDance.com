@@ -15,10 +15,9 @@ class App extends Component {
         <div className="container">
       <Route path="/" exact component={HomePage} />
       <Route path="/invite" component={InvitePage} />
-      <Route path="/loggedin" component={LoggedIn} />
-      <Route path="/room" component={Room} />
+      <Route path="/hostLoggedin" component={hostLoggedIn} />
       <Route path="/alreadyHosted" component={alreadyHosted} />
-      <Route path="/guestLoggedIn" component={LoggedIn} />
+      <Route path="/guestLoggedIn" component={guestLoggedIn} />
       <Route path="/error" component={Error} />
     </div>
     </BrowserRouter>
@@ -30,11 +29,11 @@ class App extends Component {
 const InvitePage = () => {
   return <a style={{textDecoration:'none', color: 'white'}} href={`http://localhost:${PORT}/invite`}>Login to Spotify and join the party</a>
 }
-const LoggedIn = () => {
-  return <div id="links" style={{textDecoration:'none', color: 'white'}}>Logged In!</div>
+const hostLoggedIn = () => {
+  return <div id="links" style={{textDecoration:'none', color: 'white'}}>Host Logged In!</div>
 }
-const Room = () => {
-  return <div id="links" style={{textDecoration:'none', color: 'white'}}>You're in the room</div>
+const guestLoggedIn = () => {
+  return <div id="links" style={{textDecoration:'none', color: 'white'}}>Guest Logged In!</div>
 }
 const alreadyHosted = () => {
   return <div id="links">
@@ -46,7 +45,7 @@ const HomePage = () => {
   return (
     <div id="links">
     <a style={{lineHeight: '10px', marginBottom: '10px', textDecoration:'none', color: 'white'}} href={`http://localhost:${PORT}/login`}>Login to Spotify and host </a><br />
-    <a style={{lineHeight: '10px', marginBottom: '10px', textDecoration:'none', color: 'white'}} href={`http://localhost:${PORT}/invite?room_id=ABC1234`}>Login and join existing </a><br />
+    <a style={{lineHeight: '10px', marginBottom: '10px', textDecoration:'none', color: 'white'}} href={`http://localhost:${PORT}/invite`}>Login and join existing </a><br />
     </div>
   );
 }
