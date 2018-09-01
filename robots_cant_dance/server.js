@@ -141,7 +141,6 @@ app.get('/invite', function(req, res) {
 });
 
 app.get('/callback', function(req, resp) {
-  console.log('IN HOST CALLBACK'.green);
   var code = req.query.code || null;
   var state = req.query.state || null;
   var storedState = req.cookies ? req.cookies[stateKey] : null;
@@ -195,7 +194,6 @@ app.get('/guestcallback', function(req, resp) {
           return rp(setPlaybackOptions(newUser, master, playbackDelay))
         })
         .then( (res) => {
-          console.log('adding newUser to ',...users)
           users = [...users,newUser]
           resp.redirect('http://localhost:3000/guestLoggedIn')
           pollUsersPlayback()
@@ -220,27 +218,24 @@ const syncToMaster = ( host, users) => {
         .then(() => checkCurrentTrack(user))
         .then( result => {
           if (result.track_uri !== master.track_uri) {
-            console.log('current user', user.name,'result', result.track_uri , 'master', master.track_uri)
             console.log('resyncing ', master.track_uri, ' to ', result.track_uri,' played by ', result.selector_name)
             master = result
             allUsers.splice(allUsers.indexOf(user),1)
             resync(allUsers, master)
             return true
-          } else { 
-            console.log('In SaME TR4CK!', result.track_uri,' and ', master.track_uri)}
+          } 
         })
         .catch(e => console.log(e.message))
       })
   } else {
-    console.log('no host token AND user length host: ', host,' users: ', users);
+    console.log('only one user in the room');
   }
 }
 
 const resync = (allUsers, master) => {
-  console.log('IN RESYNC!!! allUsers ', allUsers)
   allUsers.forEach((user =>  
     rp(setPlaybackOptions(user,master,playbackDelay))
-    .then(res => console.log('SYNCED!', res, user, master))
+    .then(() => console.log('Synced ', user, ' to ', master))
     .catch(e => console.log(e.message))))
 }
 
@@ -269,5 +264,5 @@ const checkCurrentTrack = (user) => {
 
 
 app.listen(port, () => {
-  console.log(`Started RCD Server on localhost:${port}`.green);
+  console.log(`Started RCD Server on localhost:${port}`);
 });
