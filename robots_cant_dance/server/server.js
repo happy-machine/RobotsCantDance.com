@@ -4,15 +4,21 @@ const port = process.env.PORT || 5000;
 var _ = require ('lodash')
 var express = require('express'); 
 var cors = require('cors')
+require('dotenv').config()
+
 const playbackDelay = 0
 // playbackDelay pushes the track 'back'
 var querystring = require('querystring');
 var cookieParser = require('cookie-parser');
 const rp = require('request-promise')
-var client_id = 'dd991e3ab8114a45bafbd430281adc65'; 
-var client_secret = 'e3d433cb69314a93a86e917aa36f1f12'; 
+
+var client_id = process.env.CLIENT_ID; 
+var client_secret = process.env.CLIENT_SECRET; 
+
 var host_redirect_uri = `http://localhost:5000/callback/`; 
 var guest_redirect_uri = `http://localhost:5000/guestcallback/`; 
+
+
 var host = {
   token: null,
   name: null
