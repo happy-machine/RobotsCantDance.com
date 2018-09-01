@@ -74,7 +74,6 @@ var getPlaybackOptions = (user) => {
  }
 };
 
-
 var setPlaybackOptions = (user, master, delay = 1) => {
 console.log('setting playback to uri: ', master.track_uri, 'position: ', master.play_position, 'for: ', user.name)
 
@@ -104,7 +103,6 @@ let authOptions = (redirect_uri, code) => {
     json: true
   }
 }
-
 
 app.get('/login', function(req, res) {
   var state = generateRandomString(16);
@@ -209,13 +207,12 @@ app.get('/guestcallback', function(req, resp) {
 
 
 const syncToMaster = ( host, users) => {
-  console.log('USERS CHECKING ARE ', users)
   if (host.token && users.length){
     let allUsers = [...users, host]
     allUsers.some(
       (user) => {
         wait_promise(350)
-        .then(() => checkCurrentTrack(user))
+        .then( () => checkCurrentTrack(user))
         .then( result => {
           if (result.track_uri !== master.track_uri) {
             console.log('resyncing ', master.track_uri, ' to ', result.track_uri,' played by ', result.selector_name)
@@ -245,7 +242,6 @@ const pollUsersPlayback = () => {
   setInterval(() => syncToMaster(host, users), 350 * (users.length + 1)); 
 }
 
-
 const checkCurrentTrack = (user) => {
   return new Promise (function (resolve, reject) {
     return rp(getPlaybackOptions(user)).then((res) => {
@@ -261,7 +257,6 @@ const checkCurrentTrack = (user) => {
     .catch(e => reject(e.message))
   })
 }
-
 
 app.listen(port, () => {
   console.log(`Started RCD Server on localhost:${port}`);
