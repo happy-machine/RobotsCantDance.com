@@ -10,7 +10,8 @@ body {
   background-image: url("assets/RCD_bg.png");
   background-repeat: no-repeat;
   height: 700px;
-  width: auto; }
+  width: auto;
+  font-family: Arial rounded MT Bold; }
 
 #RCD_Logo {
   margin: 10px;
@@ -21,6 +22,7 @@ body {
   height: 120px; }
 
 a {
+  font-family: Arial rounded MT Bold;
   text-decoration: "none" !important;
   color: 'white';
   margin-bottom: 10px;

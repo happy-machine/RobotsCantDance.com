@@ -1,6 +1,7 @@
 $brown: #956400;
 $green: #009900;
 $dark_green: #056600;
+$font_main: Arial rounded MT Bold;
 
 body {
   margin: 0;
@@ -16,6 +17,7 @@ body {
   background-repeat: no-repeat;
   height: 700px;
   width: auto;
+  font-family: $font_main
 }
 
 #RCD_Logo{
@@ -28,6 +30,7 @@ body {
 }
 
 a{
+  font-family: $font_main;
   text-decoration:'none'!important;
   color: 'white';
   margin-bottom: 10px;
