@@ -1,42 +1,58 @@
-var express = require('express');
-var app = express();
-const port = process.env.PORT || 5000;
-var _ = require ('lodash')
-var express = require('express'); 
-var cors = require('cors')
-require('dotenv').config()
+const express = require('express');
+const app = express();
+const SERVER_PORT = process.env.PORT || 5000;
+const CLIENT_PORT = process.env.CLIENT_PORT || 3000;
+const _ = require ('lodash')
+const cors = require('cors')
+// playbackDelay pushes the track 'back'
+const querystring = require('querystring');
+const cookieParser = require('cookie-parser');
+const rp = require('request-promise')
+const CLIENT_ID = 'dd991e3ab8114a45bafbd430281adc65'; 
+const CLIENT_SECRET = 'e3d433cb69314a93a86e917aa36f1f12'; 
+const ERROR = 'ERROR'
+const DEPLOY = 'deploy'
+const LOCAL = 'local'
+const MODE = LOCAL
+const URL_root = {
+  deploy: '',
+  local: 'http://localhost:'
+}
+
+const URLfactory = (endpoint, ERROR = false, port = CLIENT_PORT, mode = MODE) => {
+  if (ERROR) {
+    return URL_root[mode] + port + '/error?error=' + endpoint
+  } else {
+    return URL_root[mode] + port + '/' + endpoint + '/'
+  }
+}
+/* 
+*/
+const HOST_REDIRECT_URI = URLfactory('callback', false, 5000)
+const GUEST_REDIRECT_URI =  URLfactory('guestcallback', false, 5000)
+const PERMISSIONS_SCOPE = 'user-read-currently-playing user-modify-playback-state user-read-playback-state streaming user-read-private';
+const STATE_KEY = 'spotify_auth_state';
 
 const playbackDelay = 0
-// playbackDelay pushes the track 'back'
-var querystring = require('querystring');
-var cookieParser = require('cookie-parser');
-const rp = require('request-promise')
 
-var client_id = process.env.CLIENT_ID; 
-var client_secret = process.env.CLIENT_SECRET; 
-
-var host_redirect_uri = `http://localhost:5000/callback/`; 
-var guest_redirect_uri = `http://localhost:5000/guestcallback/`; 
-
-
-var host = {
+// set mode to LOCAL or DEPLOY
+const host = {
   token: null,
   name: null
 }
-let users = [];
+
+const users = [];
 // var tokenExpiry = new Date().getTime();
 
-const PERMISSIONS_SCOPE = 'user-read-currently-playing user-modify-playback-state user-read-playback-state streaming user-read-private';
-var stateKey = 'spotify_auth_state';
-var app = express();
 app.use(express.static(__dirname + '/public'))
   .use(cookieParser())
   .use(cors())
 
 
-var generateRandomString = function(length) {
-  var text = '';
-  var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
+let generateRandomString = function(length) {
+  let text = '';
+  let possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   for (var i = 0; i < length; i++) {
     text += possible.charAt(Math.floor(Math.random() * possible.length));
   }
@@ -60,7 +76,7 @@ let master = {
   selector_token: null
 }
 
-var getUserOptions = (user) => {
+const getUserOptions = (user) => {
   return { 
     method: 'GET',
     uri: 'https://api.spotify.com/v1/me',
@@ -69,7 +85,7 @@ var getUserOptions = (user) => {
   }
 };
 
-var getPlaybackOptions = (user) => {
+const getPlaybackOptions = (user) => {
  return {
   uri: 'https://api.spotify.com/v1/me/player/currently-playing',
   headers: { 
@@ -80,7 +96,7 @@ var getPlaybackOptions = (user) => {
  }
 };
 
-var setPlaybackOptions = (user, master, delay = 1) => {
+const setPlaybackOptions = (user, master, delay = 1) => {
 console.log('setting playback to uri: ', master.track_uri, 'position: ', master.play_position, 'for: ', user.name)
 
   return {
@@ -95,7 +111,7 @@ console.log('setting playback to uri: ', master.track_uri, 'position: ', master.
    }
  };
 
-let authOptions = (redirect_uri, code) => {
+const authOptions = (redirect_uri, code) => {
     return {
     url: 'https://accounts.spotify.com/api/token',
     form: {
@@ -104,110 +120,112 @@ let authOptions = (redirect_uri, code) => {
       grant_type: 'authorization_code'
     },
     headers: {
-      'Authorization': 'Basic ' + (new Buffer(client_id + ':' + client_secret).toString('base64'))
+      'Authorization': 'Basic ' + (new Buffer(CLIENT_ID + ':' + CLIENT_SECRET).toString('base64'))
     },
     json: true
   }
 }
 
 app.get('/login', function(req, res) {
-  var state = generateRandomString(16);
-  res.cookie(stateKey, state);
+  const state = generateRandomString(16);
+  res.cookie(STATE_KEY, state);
   if (!host.token) {
     res.redirect('https://accounts.spotify.com/authorize?' +
     querystring.stringify({
       response_type: 'code',
-      client_id: client_id,
+      client_id: CLIENT_ID,
       scope: PERMISSIONS_SCOPE,
-      redirect_uri: host_redirect_uri,
+      redirect_uri: HOST_REDIRECT_URI,
       state: state
     }));
   } else {
-    res.redirect('http://localhost:3000/alreadyHosted')
+    res.redirect(URLfactory('alreadyHosted'))
   }
 });
 
 app.get('/invite', function(req, res) {
-  var state = generateRandomString(16);
-  res.cookie(stateKey, state);
+  const state = generateRandomString(16);
+  res.cookie(STATE_KEY, state);
   if (host.token) {
     res.redirect('https://accounts.spotify.com/authorize?' +
     querystring.stringify({
       response_type: 'code',
-      client_id: client_id,
+      client_id: CLIENT_ID,
       scope: PERMISSIONS_SCOPE,
-      redirect_uri: guest_redirect_uri,
+      redirect_uri: GUEST_REDIRECT_URI,
       state: state
     }));
   } else { 
-    console.log('error in invite'.red)
-    res.redirect('http://localhost:3000/error?error=No_Host_Connected') }
-});
-
-app.get('/callback', function(req, resp) {
-  var code = req.query.code || null;
-  var state = req.query.state || null;
-  var storedState = req.cookies ? req.cookies[stateKey] : null;
-  if (state === null || state !== storedState) {
-    resp.redirect('/#' +
-      querystring.stringify({
-        error: 'state_mismatch'
-      }));
-  } else {
-    resp.clearCookie(stateKey);
-
-    rp.post(authOptions(host_redirect_uri, code), function(error, response, body) {
-      if (!error && response.statusCode === 200) {
-        host.token = body.access_token
-        rp(getUserOptions(host))
-        .then((res) => {
-          host.name = res.display_name
-          resp.redirect('http://localhost:3000/hostLoggedIn')
-        })
-        .catch(e => console.log('in host callback', e.message))
-      } else {
-        console.log('error in host post to spotify'.red)
-      }
-    }).catch(e => console.log('error in callback rp.post'));
+    res.redirect(URLfactory('No_Host_Connected', ERROR)) 
   }
 });
 
-app.get('/guestcallback', function(req, resp) {
-  var code = req.query.code || null;
-  var state = req.query.state || null;
-  var storedState = req.cookies ? req.cookies[stateKey] : null;
+app.get('/callback', function(req, res) {
+  const code = req.query.code || null;
+  const state = req.query.state || null;
+  const storedState = req.cookies ? req.cookies[STATE_KEY] : null;
   if (state === null || state !== storedState) {
-    resp.redirect('/#' +
+    res.redirect('/#' +
       querystring.stringify({
         error: 'state_mismatch'
       }));
   } else {
-    resp.clearCookie(stateKey);
+    res.clearCookie(STATE_KEY);
 
-    rp.post(authOptions(guest_redirect_uri, code), function(error, response, body) {
+    rp.post(authOptions(HOST_REDIRECT_URI, code), function(error, response, body) {
+      if (!error && response.statusCode === 200) {
+        host.token = body.access_token
+        rp(getUserOptions(host))
+        .then((user_details) => {
+          host.name = user_details.display_name
+          res.redirect(URLfactory('hostLoggedIn'))
+        })
+        .catch( e => res.redirect(URLfactory('Get_host_options', ERROR)) )
+      } else {
+        res.redirect(URLfactory('Spotify_host_auth', ERROR))
+      }
+    })
+  }
+});
+
+app.get('/guestcallback', function(req, res) {
+  const code = req.query.code || null;
+  const state = req.query.state || null;
+  const storedState = req.cookies ? req.cookies[STATE_KEY] : null;
+  if (state === null || state !== storedState) {
+    res.redirect('/#' +
+      querystring.stringify({
+        error: 'state_mismatch'
+      }));
+  } else {
+    res.clearCookie(STATE_KEY);
+
+    rp.post(authOptions(GUEST_REDIRECT_URI, code), function(error, response, body) {
       if (!error && response.statusCode === 200) {
         let newUser = {}
         newUser.token = body.access_token
         rp(getUserOptions(newUser))
-        .then( (res) => {
-          newUser.name = res.display_name
+        .then( (user_details) => {
+          newUser.name = user_details.display_name
           return checkCurrentTrack(host, master)
         })
         .then( (obj) => {
           master = obj;
           return rp(setPlaybackOptions(newUser, master, playbackDelay))
         })
-        .then( (res) => {
+        .then( () => {
           users = [...users,newUser]
-          resp.redirect('http://localhost:3000/guestLoggedIn')
+          res.redirect(URLfactory('guestLoggedIn'))
           pollUsersPlayback()
         })
-        .catch(e => console.log('in guest callback', e.message))
+        .catch( e =>  {
+          console.log('Error in guest sync: ', e)
+          res.redirect(URLfactory('Guest_sync', ERROR))
+        })
       } else {
-        console.log('error in guest post to spotify'.red)
+        res.redirect(URLfactory('Guest_callback', ERROR))
       }
     })
-    .catch(e => console.log('error in guest callback rp.post'.red));
   }
 });
 
@@ -221,7 +239,7 @@ const syncToMaster = ( host, users) => {
         .then( () => checkCurrentTrack(user))
         .then( result => {
           if (result.track_uri !== master.track_uri) {
-            console.log('resyncing ', master.track_uri, ' to ', result.track_uri,' played by ', result.selector_name)
+            console.log(`resyncing ${master.track_uri} to ${result.track_uri} played by ${result.selector_name}`)
             master = result
             allUsers.splice(allUsers.indexOf(user),1)
             resync(allUsers, master)
@@ -238,7 +256,7 @@ const syncToMaster = ( host, users) => {
 const resync = (allUsers, master) => {
   allUsers.forEach((user =>  
     rp(setPlaybackOptions(user,master,playbackDelay))
-    .then(() => console.log('Synced ', user, ' to ', master))
+    .then(() => console.log(`Synced ${user} to ${master}`))
     .catch(e => console.log(e.message))))
 }
 
@@ -264,6 +282,6 @@ const checkCurrentTrack = (user) => {
   })
 }
 
-app.listen(port, () => {
-  console.log(`Started RCD Server.js on localhost:${port}`);
+app.listen(SERVER_PORT, () => {
+  console.log(`Started RCD Server.js on ${MODE}: ${SERVER_PORT}`);
 });
