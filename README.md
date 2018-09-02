@@ -8,7 +8,7 @@ An open source project curated by DJ Fresh (Happy-Machine) to create a cutting e
 
 Our first project, a Spotify DJ battle platform to allow friends to listen to music together is up and running, see the Wiki for info about contributing.
 
-Wiki: https://github.com/happy-machine/RobotsCantDance.com/wiki/RCD
+Wiki: https://github.com/happy-machine/RobotsCantDance.com/wiki/home
 
   API: https://github.com/happy-machine/RCD_Api
   Client:  https://github.com/happy-machine/RCD_Client
