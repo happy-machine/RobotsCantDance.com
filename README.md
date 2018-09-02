@@ -12,4 +12,4 @@ Wiki: https://github.com/happy-machine/RobotsCantDance.com/wiki/RCD
   API: https://github.com/happy-machine/RCD_Api
   Client:  https://github.com/happy-machine/RCD_Client
   
-  Many thanks to our creators and contributors mattheiunelmes@github.com, ijeffro@github.com, cbishopvelti@github.com
+  Many thanks to our creators and contributors https://github.com/mattheiunelmes, https://github.com/ijeffro, https://github.com/cbishopvelti, https://github.com/ian247, https://github.com/sweiland, https://github.com/vassangels, https://github.com/chrisjmccreadie
