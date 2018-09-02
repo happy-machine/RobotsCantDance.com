@@ -2,8 +2,9 @@
 ![Screnshot](https://i.imgur.com/xJF27gr.png)
 
 www.RobotsCantDance.com
+Telegram: https://t.me/joinchat/G2gtZwzbKKvsFW_7zCavIA
 
-An open source project curated by DJ Fresh (Happy-Machine) to create a cutting edge medium for music discussion and collaboration
+An open source project curated by DJ Fresh (Happy-Machine) to create a cutting edge medium for music discussion and collaboration.
 
 Our first project, a Spotify DJ battle platform to allow friends to listen to music together is up and running, see the Wiki for info about contributing.
 
