@@ -5,7 +5,7 @@ www.RobotsCantDance.com
 
 An open source project curated by DJ Fresh (Happy-Machine) to create a cutting edge medium for music discussion and collaboration
 
-Our first project, a Spotify dj battle platform to allow friends to listen to music together is up and running, see the Wiki for info about contributing.
+Our first project, a Spotify DJ battle platform to allow friends to listen to music together is up and running, see the Wiki for info about contributing.
 
 Wiki: https://github.com/happy-machine/RobotsCantDance.com/wiki/RCD
 
