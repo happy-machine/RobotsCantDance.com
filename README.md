@@ -1,5 +1,5 @@
 # RobotsCantDance.com
-![Screnshot](https://i.imgur.com/xJF27gr.png)
+![Screnshot](https://i.imgur.com/JLPZLwC.png)
 
 www.RobotsCantDance.com
 Telegram: https://t.me/joinchat/G2gtZwzbKKvsFW_7zCavIA
